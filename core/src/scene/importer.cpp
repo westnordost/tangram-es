@@ -46,14 +46,11 @@ Node Importer::applySceneImports(std::shared_ptr<Platform> platform) {
                     break;
                 }
                 condition.wait(lock);
-            }
-
-            if (!m_sceneQueue.empty()) {
-                nextUrlToImport = m_sceneQueue.back();
-                m_sceneQueue.pop_back();
-            } else {
                 continue;
             }
+
+            nextUrlToImport = m_sceneQueue.back();
+            m_sceneQueue.pop_back();
 
             if (m_importedScenes.find(nextUrlToImport) != m_importedScenes.end()) {
                 // This scene URL has already been imported, we're done!
