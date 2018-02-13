@@ -67,7 +67,7 @@ Node Importer::applySceneImports(std::shared_ptr<Platform> platform) {
                 addSceneData(nextUrlToImport, response.content);
             }
             activeDownloads--;
-            condition.notify_all();
+            condition.notify_one();
         });
     }
 
