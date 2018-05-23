@@ -1,5 +1,8 @@
 project(tangram-core)
 
+# Build core library dependencies.
+add_subdirectory(deps)
+
 add_library(tangram-core
   src/map.cpp
   src/platform.cpp
@@ -15,7 +18,6 @@ add_library(tangram-core
   src/data/formats/topoJson.cpp
   src/debug/frameInfo.cpp
   src/debug/textDisplay.cpp
-  src/gl/disposer.cpp
   src/gl/framebuffer.cpp
   src/gl/glError.cpp
   src/gl/hardware.cpp
@@ -92,10 +94,15 @@ add_library(tangram-core
   src/view/viewConstraint.cpp
 )
 
+# Include headers from core library and dependencies.
 target_include_directories(tangram-core
   PUBLIC
   include/tangram
+  # TODO: These headers shouldn't be public, but Platform classes use them.
   src
+  # TODO: This header shouldn't be public, but we use it in propertyItem.h
+  deps/variant/include
+  PRIVATE
   generated
   deps
   deps/glm
@@ -114,9 +121,6 @@ target_include_directories(tangram-core
   deps/geojson-vt-cpp/include
   deps/double-conversion/include
 )
-
-# Build core library dependencies.
-add_subdirectory(deps)
 
 # Link core library dependencies.
 target_link_libraries(tangram-core
@@ -151,6 +155,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   )
 endif()
 
+set_target_properties(tangram-core
+  PROPERTIES
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED ON
+)
+
 # make groups for xcode
 group_recursive_sources(src "src")
 
@@ -158,22 +168,22 @@ group_recursive_sources(src "src")
 file(GLOB_RECURSE SHADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*")
 set(SHADER_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/generated)
 foreach(_shader ${SHADER_FILES})
-    get_filename_component(_shader_name ${_shader} NAME_WE)
-    get_filename_component(_shader_ext ${_shader} EXT)
-    string(REGEX REPLACE "\\." "" _shader_ext ${_shader_ext})
-    if(${_shader_ext} STREQUAL "fs" OR ${_shader_ext} STREQUAL "glsl" OR ${_shader_ext} STREQUAL "vs")
-        set(_shader_name ${_shader_name}_${_shader_ext})
-        set(SHADER_OUTPUT ${SHADER_OUTPUT_DIRECTORY}/${_shader_name}.h)
-        add_custom_command(
-            OUTPUT ${SHADER_OUTPUT}
-            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/..
-            MAIN_DEPENDENCY ${_shader}
-            COMMAND ${PROJECT_SOURCE_DIR}/../scripts/incbin.sh
-                ${_shader}
-                core/generated/${_shader_name}.h
-                ${_shader_name})
-        list(APPEND SHADER_OUTPUT_FILES ${SHADER_OUTPUT})
-    endif()
+  get_filename_component(_shader_name ${_shader} NAME_WE)
+  get_filename_component(_shader_ext ${_shader} EXT)
+  string(REGEX REPLACE "\\." "" _shader_ext ${_shader_ext})
+  if(${_shader_ext} STREQUAL "fs" OR ${_shader_ext} STREQUAL "glsl" OR ${_shader_ext} STREQUAL "vs")
+    set(_shader_name ${_shader_name}_${_shader_ext})
+    set(SHADER_OUTPUT ${SHADER_OUTPUT_DIRECTORY}/${_shader_name}.h)
+    add_custom_command(
+      OUTPUT ${SHADER_OUTPUT}
+      WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/..
+      MAIN_DEPENDENCY ${_shader}
+      COMMAND ${PROJECT_SOURCE_DIR}/../scripts/incbin.sh
+        ${_shader}
+        core/generated/${_shader_name}.h
+        ${_shader_name})
+    list(APPEND SHADER_OUTPUT_FILES ${SHADER_OUTPUT})
+  endif()
 endforeach()
 add_custom_target(shader-headers DEPENDS ${SHADER_OUTPUT_FILES})
-add_dependencies(${CORE_LIBRARY} shader-headers)
+add_dependencies(tangram-core shader-headers)

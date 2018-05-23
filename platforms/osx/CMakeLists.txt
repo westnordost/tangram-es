@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.2)
 
 include(../../toolchains/utils.cmake)
 
@@ -27,10 +27,11 @@ if(TANGRAM_APPLICATION)
     set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs")
     set(GLFW_BUILD_DOCS OFF CACHE BOOL "Build the GLFW documentation")
     set(GLFW_INSTALL OFF CACHE BOOL "Generate installation target")
-    add_subdirectory(${PROJECT_SOURCE_DIR}/platforms/common/glfw)
+    add_subdirectory(../common/glfw ./glfw)
+    target_compile_options(glfw PRIVATE "-Wno-deprecated-declarations")
   endif()
 
-  add_bundle_resources(RESOURCES "${PROJECT_SOURCE_DIR}/scenes" "Resources")
+  add_bundle_resources(RESOURCES ../../scenes "Resources")
 
   add_executable(tangram
     MACOSX_BUNDLE
@@ -43,12 +44,13 @@ if(TANGRAM_APPLICATION)
   )
 
   target_include_directories(tangram
-    PUBLIC
+    PRIVATE
     ${GLFW_SOURCE_DIR}/include
     ../common
   )
 
   target_link_libraries(tangram
+    PRIVATE
     tangram-core
     glfw
     ${GLFW_LIBRARIES}
@@ -56,6 +58,7 @@ if(TANGRAM_APPLICATION)
   )
 
   target_compile_options(tangram
+    PRIVATE
     -std=c++1y
     -stdlib=libc++
     -Wall
@@ -67,8 +70,6 @@ if(TANGRAM_APPLICATION)
   )
 
   # add resource files and property list
-  set_target_properties(tangram PROPERTIES
-    MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/platforms/osx/Info.plist
-  )
+  set_target_properties(tangram PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
 
 endif()
