@@ -1,12 +1,7 @@
-# global compile options
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wignored-qualifiers -Wtype-limits -Wmissing-field-initializers")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
-
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-gnu-zero-variadic-macro-arguments")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}  -lc++ -lc++abi")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++ -lc++abi")
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCC)
@@ -31,11 +26,9 @@ check_unsupported_compiler_version()
 add_definitions(-DTANGRAM_LINUX)
 
 # load core library
-add_subdirectory(${PROJECT_SOURCE_DIR}/core)
+add_subdirectory(../../core ./core)
 
 if(TANGRAM_APPLICATION)
-
-  set(EXECUTABLE_NAME "tangram")
 
   get_nextzen_api_key(NEXTZEN_API_KEY)
   add_definitions(-DNEXTZEN_API_KEY="${NEXTZEN_API_KEY}")
@@ -47,7 +40,7 @@ if(TANGRAM_APPLICATION)
   find_package(OpenGL REQUIRED)
 
   # Build GLFW.
-  if (TANGRAM_USE_SYSTEM_GLFW_LIBS)
+  if(TANGRAM_USE_SYSTEM_GLFW_LIBS)
     include(FindPkgConfig)
     pkg_check_modules(GLFW REQUIRED glfw3)
   else()
@@ -56,38 +49,54 @@ if(TANGRAM_APPLICATION)
     set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs")
     set(GLFW_BUILD_DOCS OFF CACHE BOOL "Build the GLFW documentation")
     set(GLFW_INSTALL OFF CACHE BOOL "Generate installation target")
-    add_subdirectory(${PROJECT_SOURCE_DIR}/platforms/common/glfw)
+    add_subdirectory(../common/glfw ./glfw)
   endif()
 
   # System font config
   include(FindPkgConfig)
   pkg_check_modules(FONTCONFIG REQUIRED "fontconfig")
 
-  add_executable(${EXECUTABLE_NAME}
-    ${PROJECT_SOURCE_DIR}/platforms/linux/src/linuxPlatform.cpp
-    ${PROJECT_SOURCE_DIR}/platforms/linux/src/main.cpp
-    ${PROJECT_SOURCE_DIR}/platforms/common/platform_gl.cpp
-    ${PROJECT_SOURCE_DIR}/platforms/common/urlClient.cpp
-    ${PROJECT_SOURCE_DIR}/platforms/common/linuxSystemFontHelper.cpp
-    ${PROJECT_SOURCE_DIR}/platforms/common/glfwApp.cpp
-    )
+  add_executable(tangram
+    src/linuxPlatform.cpp
+    src/main.cpp
+    ../common/platform_gl.cpp
+    ../common/urlClient.cpp
+    ../common/linuxSystemFontHelper.cpp
+    ../common/glfwApp.cpp
+  )
 
-  target_include_directories(${EXECUTABLE_NAME}
-    PUBLIC
+  target_include_directories(tangram
+    PRIVATE
+    ../common
     ${GLFW_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/platforms/common
-    ${FONTCONFIG_INCLUDE_DIRS})
+    ${FONTCONFIG_INCLUDE_DIRS}
+  )
 
-  target_link_libraries(${EXECUTABLE_NAME}
-    ${CORE_LIBRARY}
-    -lcurl glfw
-    # only used when not using external lib
-    -ldl
-    -pthread
+  target_link_libraries(tangram
+    PRIVATE
+    tangram-core
+    glfw
     ${GLFW_LIBRARIES}
     ${OPENGL_LIBRARIES}
-    ${FONTCONFIG_LDFLAGS})
+    ${FONTCONFIG_LDFLAGS}
+    -lcurl
+    -pthread
+    # only used when not using external lib
+    -ldl
+  )
 
-  add_resources(${EXECUTABLE_NAME} "${PROJECT_SOURCE_DIR}/scenes")
+  target_compile_options(tangram
+    PRIVATE
+    -std=c++1y
+    -fno-omit-frame-pointer
+    -Wall
+    -Wreturn-type
+    -Wsign-compare
+    -Wignored-qualifiers
+    -Wtype-limits
+    -Wmissing-field-initializers
+  )
+
+  add_resources(tangram ../../scenes)
 
 endif()
