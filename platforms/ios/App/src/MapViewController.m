@@ -193,7 +193,7 @@
     NSMutableArray<TGSceneUpdate *>* updates = [[NSMutableArray alloc]init];
     [updates addObject:[[TGSceneUpdate alloc]initWithPath:@"global.sdk_api_key" value:apiKey]];
 
-    [super loadSceneAsyncFromURL:[NSURL URLWithString:@"https://tangrams.github.io/walkabout-style/walkabout-style.yaml"] withUpdates:updates];
+    [super loadSceneAsyncFromURL:[NSURL URLWithString:@"https://www.nextzen.org/carto/bubble-wrap-style/9/bubble-wrap-style.zip"] withUpdates:updates];
 
     //Location tracking marker setup
     TGMarker* markerPoint = [self markerAdd];

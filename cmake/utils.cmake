@@ -128,13 +128,13 @@ macro(add_resources TARGET RESOURCE_DIR)
 
 endmacro(add_resources)
 
-macro(add_framework FWNAME APPNAME LIBPATH)
-    find_library(FRAMEWORK_${FWNAME} NAMES ${FWNAME} PATHS ${LIBPATH} PATH_SUFFIXES Frameworks NO_DEFAULT_PATH)
+macro(target_add_framework APPNAME FWNAME)
+    find_library(FRAMEWORK_${FWNAME} NAMES ${FWNAME} PATHS ${CMAKE_SYSTEM_FRAMEWORK_PATH} PATH_SUFFIXES Frameworks NO_DEFAULT_PATH)
     if(${FRAMEWORK_${FWNAME}} STREQUAL FRAMEWORK_${FWNAME}-NOTFOUND)
         message(ERROR ": Framework ${FWNAME} not found")
     else()
-        target_link_libraries(${APPNAME} ${FRAMEWORK_${FWNAME}})
+        target_link_libraries(${APPNAME} PRIVATE ${FRAMEWORK_${FWNAME}})
         message(STATUS "Framework ${FWNAME} found")
     endif()
-endmacro(add_framework)
+endmacro(target_add_framework)
 
