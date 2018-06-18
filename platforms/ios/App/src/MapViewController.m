@@ -185,9 +185,10 @@
 
 - (void)viewWillAppear:(BOOL)animated
 {
-    NSString* configPListPath = [[NSBundle mainBundle] pathForResource: @"Config" ofType: @"plist"];
-    NSMutableDictionary* configDict =[[NSMutableDictionary alloc] initWithContentsOfFile:configPListPath];
-    NSString* apiKey = [configDict valueForKey:@"NextzenApiKey"];
+    NSString* apiKey = [[[NSBundle mainBundle] infoDictionary] valueForKey:@"NEXTZEN_API_KEY"];
+    if ([apiKey length] == 0) {
+        apiKey = [[[NSProcessInfo processInfo] environment] valueForKeyPath:@"NEXTZEN_API_KEY"];
+    }
     NSAssert(apiKey, @"Please provide a valid API key by setting the environment variable NEXTZEN_API_KEY at build time");
 
     NSMutableArray<TGSceneUpdate *>* updates = [[NSMutableArray alloc]init];
