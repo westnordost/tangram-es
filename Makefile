@@ -36,10 +36,6 @@ ANDROID_BUILD_DIR = platforms/android/tangram/build
 OSX_BUILD_DIR = build/osx
 OSX_XCODE_BUILD_DIR = build/xcode
 IOS_BUILD_DIR = build/ios
-IOS_FRAMEWORK_BUILD_DIR = build/ios-framework
-IOS_FRAMEWORK_SIM_BUILD_DIR = build/ios-framework-sim
-IOS_FRAMEWORK_UNIVERSAL_BUILD_DIR = build/ios-framework-universal
-IOS_SIM_BUILD_DIR = build/ios-sim
 IOS_DOCS_BUILD_DIR = build/ios-docs
 RPI_BUILD_DIR = build/rpi
 LINUX_BUILD_DIR = build/linux
@@ -48,7 +44,6 @@ BENCH_BUILD_DIR = build/bench
 TIZEN_ARM_BUILD_DIR = build/tizen-arm
 TIZEN_X86_BUILD_DIR = build/tizen-x86
 
-TOOLCHAIN_DIR = toolchains
 OSX_TARGET = tangram
 IOS_TARGET = tangram
 IOS_FRAMEWORK_TARGET = TangramMap
@@ -64,16 +59,6 @@ ifdef DEBUG
 	BUILD_TYPE = Debug
 endif
 
-# Build for iOS simulator architecture only
-ifdef TANGRAM_IOS_FRAMEWORK_SLIM
-	IOS_FRAMEWORK_PATH = ${IOS_FRAMEWORK_SIM_BUILD_DIR}/lib/${BUILD_TYPE}/TangramMap.framework
-	IOS_FRAMEWORK_DEVICE_ARCHS = ''
-else
-	IOS_FRAMEWORK_PATH = ${IOS_FRAMEWORK_UNIVERSAL_BUILD_DIR}/${BUILD_TYPE}/TangramMap.framework
-	IOS_FRAMEWORK_DEVICE_ARCHS = 'armv7 arm64'
-endif
-IOS_FRAMEWORK_SIM_ARCHS = 'x86_64'
-
 BENCH_CMAKE_PARAMS = \
 	-DBENCHMARK=1 \
 	-DAPPLICATION=0 \
@@ -87,19 +72,7 @@ UNIT_TESTS_CMAKE_PARAMS = \
 	${CMAKE_OPTIONS}
 
 IOS_CMAKE_PARAMS = \
-	-DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
 	-DPLATFORM_TARGET=ios \
-	-DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_DIR}/iOS.toolchain.cmake \
-	-DTANGRAM_FRAMEWORK=${IOS_FRAMEWORK_PATH} \
-	-G Xcode \
-	${CMAKE_OPTIONS}
-
-IOS_FRAMEWORK_CMAKE_PARAMS = \
-	-DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-	-DPLATFORM_TARGET=ios.framework \
-	-DIOS_SIMULATOR_ARCHS=${IOS_FRAMEWORK_SIM_ARCHS} \
-	-DIOS_DEVICE_ARCHS=${IOS_FRAMEWORK_DEVICE_ARCHS} \
-	-DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_DIR}/iOS.toolchain.cmake \
 	-G Xcode \
 	${CMAKE_OPTIONS}
 
@@ -168,7 +141,7 @@ clean-android:
 clean-osx:
 	rm -rf ${OSX_BUILD_DIR}
 
-clean-ios: clean-ios-framework clean-ios-framework-sim clean-ios-framework-universal
+clean-ios:
 	rm -rf ${IOS_BUILD_DIR}
 
 clean-rpi:
@@ -194,15 +167,6 @@ clean-tizen-arm:
 
 clean-tizen-x86:
 	rm -rf ${TIZEN_X86_BUILD_DIR}
-
-clean-ios-framework:
-	rm -rf ${IOS_FRAMEWORK_BUILD_DIR}
-
-clean-ios-framework-sim:
-	rm -rf ${IOS_FRAMEWORK_SIM_BUILD_DIR}
-
-clean-ios-framework-universal:
-	rm -rf ${IOS_FRAMEWORK_UNIVERSAL_BUILD_DIR}
 
 android: android-demo
 	@echo "run: 'adb install -r android/demo/build/outputs/apk/demo-debug.apk'"
@@ -238,8 +202,7 @@ cmake-xcode:
 	@cd ${OSX_XCODE_BUILD_DIR} && \
 	cmake ../.. ${DARWIN_XCODE_CMAKE_PARAMS}
 
-IOS_BUILD = \
-	xcodebuild -target ${IOS_TARGET} ARCHS=${IOS_FRAMEWORK_SIM_ARCHS} ONLY_ACTIVE_ARCH=NO -sdk iphonesimulator -project ${IOS_BUILD_DIR}/${IOS_XCODE_PROJ} -configuration ${BUILD_TYPE}
+IOS_BUILD = xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramDemo -configuration ${BUILD_TYPE}
 
 ios: cmake-ios
 ifeq (, $(shell which xcpretty))
@@ -256,39 +219,24 @@ endif
 	@cd platforms/ios && \
 	jazzy --config jazzy.yml
 
-cmake-ios: ios-framework-universal
+cmake-ios:
 	@mkdir -p ${IOS_BUILD_DIR}
 	@cd ${IOS_BUILD_DIR} && \
 	cmake ../.. ${IOS_CMAKE_PARAMS}
+	cp platforms/ios/WorkspaceSettings.xcsettings platforms/ios/Tangram.xcworkspace/xcuserdata/${USER}.xcuserdatad/WorkspaceSettings.xcsettings
 
-cmake-ios-framework:
-ifndef TANGRAM_IOS_FRAMEWORK_SLIM
-	@mkdir -p ${IOS_FRAMEWORK_BUILD_DIR}
-	@cd ${IOS_FRAMEWORK_BUILD_DIR} && \
-	cmake ../.. ${IOS_FRAMEWORK_CMAKE_PARAMS} -DBUILD_IOS_FRAMEWORK=TRUE
-endif
+IOS_FRAMEWORK_BUILD = xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramMap -configuration ${BUILD_TYPE}
 
-cmake-ios-framework-sim:
-	@mkdir -p ${IOS_FRAMEWORK_SIM_BUILD_DIR}
-	@cd ${IOS_FRAMEWORK_SIM_BUILD_DIR} && \
-	cmake ../.. ${IOS_FRAMEWORK_CMAKE_PARAMS} -DIOS_PLATFORM=SIMULATOR -DBUILD_IOS_FRAMEWORK=TRUE
-
-IOS_FRAMEWORK_BUILD = \
-	xcodebuild -target ${IOS_FRAMEWORK_TARGET} -project ${IOS_FRAMEWORK_BUILD_DIR}/${IOS_FRAMEWORK_XCODE_PROJ} -configuration ${BUILD_TYPE}
-
-ios-framework: cmake-ios-framework
-ifndef TANGRAM_IOS_FRAMEWORK_SLIM
+ios-framework: cmake-ios
 ifeq (, $(shell which xcpretty))
 	${IOS_FRAMEWORK_BUILD}
 else
 	set -euo pipefail; ${IOS_FRAMEWORK_BUILD} | ${XCPRETTY}
 endif
-endif
 
-IOS_FRAMEWORK_SIM_BUILD = \
-	xcodebuild -target ${IOS_FRAMEWORK_TARGET} -project ${IOS_FRAMEWORK_SIM_BUILD_DIR}/${IOS_FRAMEWORK_XCODE_PROJ} -configuration ${BUILD_TYPE}
+IOS_FRAMEWORK_SIM_BUILD = xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramMap -configuration ${BUILD_TYPE} -sdk iphonesimulator
 
-ios-framework-sim: cmake-ios-framework-sim
+ios-framework-sim: cmake-ios
 ifeq (, $(shell which xcpretty))
 	${IOS_FRAMEWORK_SIM_BUILD}
 else
@@ -296,13 +244,11 @@ else
 endif
 
 ios-framework-universal: ios-framework ios-framework-sim
-ifndef TANGRAM_IOS_FRAMEWORK_SLIM
-	@mkdir -p ${IOS_FRAMEWORK_UNIVERSAL_BUILD_DIR}/${BUILD_TYPE}
-	@cp -r ${IOS_FRAMEWORK_BUILD_DIR}/lib/${BUILD_TYPE}/TangramMap.framework ${IOS_FRAMEWORK_UNIVERSAL_BUILD_DIR}/${BUILD_TYPE}
-	lipo ${IOS_FRAMEWORK_BUILD_DIR}/lib/${BUILD_TYPE}/TangramMap.framework/TangramMap \
-		${IOS_FRAMEWORK_SIM_BUILD_DIR}/lib/${BUILD_TYPE}/TangramMap.framework/TangramMap \
-		-create -output ${IOS_FRAMEWORK_UNIVERSAL_BUILD_DIR}/${BUILD_TYPE}/TangramMap.framework/TangramMap
-endif
+	@mkdir -p ${IOS_BUILD_DIR}/${BUILD_TYPE}-universal
+	@cp -r ${IOS_BUILD_DIR}/${BUILD_TYPE}-iphoneos/TangramMap.framework ${IOS_BUILD_DIR}/${BUILD_TYPE}-universal
+	lipo ${IOS_BUILD_DIR}/${BUILD_TYPE}-iphoneos/TangramMap.framework/TangramMap \
+		${IOS_BUILD_DIR}/${BUILD_TYPE}-iphonesimulator/TangramMap.framework/TangramMap \
+		-create -output ${IOS_BUILD_DIR}/${BUILD_TYPE}-universal/TangramMap.framework/TangramMap
 
 rpi: cmake-rpi
 	cmake --build ${RPI_BUILD_DIR}
