@@ -15,16 +15,15 @@ FOUNDATION_EXPORT double TangramMapVersionNumber;
 /// Project version string for TangramMap.
 FOUNDATION_EXPORT const unsigned char TangramMapVersionString[];
 
-#import <TangramMap/TGMapViewController.h>
-#import <TangramMap/TGMapData.h>
-#import <TangramMap/TGGeoPoint.h>
-#import <TangramMap/TGGeoPolygon.h>
-#import <TangramMap/TGGeoPolyline.h>
-#import <TangramMap/TGTypes.h>
-#import <TangramMap/TGHttpHandler.h>
-#import <TangramMap/TGMarker.h>
-#import <TangramMap/TGMapData.h>
-#import <TangramMap/TGSceneUpdate.h>
-#import <TangramMap/TGMarkerPickResult.h>
-#import <TangramMap/TGLabelPickResult.h>
-
+#import <TGMapViewController.h>
+#import <TGMapData.h>
+#import <TGGeoPoint.h>
+#import <TGGeoPolygon.h>
+#import <TGGeoPolyline.h>
+#import <TGTypes.h>
+#import <TGHttpHandler.h>
+#import <TGMarker.h>
+#import <TGMapData.h>
+#import <TGSceneUpdate.h>
+#import <TGMarkerPickResult.h>
+#import <TGLabelPickResult.h>
