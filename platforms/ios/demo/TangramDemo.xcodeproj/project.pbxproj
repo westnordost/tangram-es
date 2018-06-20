@@ -13,9 +13,8 @@
 		D298723C20D05F7A009A0AB8 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = D298723920D05F7A009A0AB8 /* LaunchScreen.xib */; };
 		D298723D20D05F7A009A0AB8 /* Main_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D298723A20D05F7A009A0AB8 /* Main_iPhone.storyboard */; };
 		D298723E20D05F7A009A0AB8 /* Main_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = D298723B20D05F7A009A0AB8 /* Main_iPad.storyboard */; };
-		D298724320D0608B009A0AB8 /* TangramMap.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D298724220D0608B009A0AB8 /* TangramMap.framework */; };
-		D298724620D06529009A0AB8 /* TangramMap.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D298724220D0608B009A0AB8 /* TangramMap.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		D298724820D06A30009A0AB8 /* Config.plist in Resources */ = {isa = PBXBuildFile; fileRef = D298724720D06A30009A0AB8 /* Config.plist */; };
+		D2DB6A9420DAE14A0043E74F /* TangramMap.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2DB6A9320DAE14A0043E74F /* TangramMap.framework */; };
+		D2DB6A9520DAE1500043E74F /* TangramMap.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = D2DB6A9320DAE14A0043E74F /* TangramMap.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,7 +24,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				D298724620D06529009A0AB8 /* TangramMap.framework in CopyFiles */,
+				D2DB6A9520DAE1500043E74F /* TangramMap.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -42,8 +41,7 @@
 		D298723A20D05F7A009A0AB8 /* Main_iPhone.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main_iPhone.storyboard; sourceTree = "<group>"; };
 		D298723B20D05F7A009A0AB8 /* Main_iPad.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Main_iPad.storyboard; sourceTree = "<group>"; };
 		D298723F20D05F88009A0AB8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D298724220D0608B009A0AB8 /* TangramMap.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TangramMap.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		D298724720D06A30009A0AB8 /* Config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Config.plist; sourceTree = "<group>"; };
+		D2DB6A9320DAE14A0043E74F /* TangramMap.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = TangramMap.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,13 +49,21 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D298724320D0608B009A0AB8 /* TangramMap.framework in Frameworks */,
+				D2DB6A9420DAE14A0043E74F /* TangramMap.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D235656F20D9BA77006E3D13 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D2DB6A9320DAE14A0043E74F /* TangramMap.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		D298720D20D05D8E009A0AB8 = {
 			isa = PBXGroup;
 			children = (
@@ -65,7 +71,7 @@
 				D298723820D05F7A009A0AB8 /* resources */,
 				D298722F20D05F6E009A0AB8 /* src */,
 				D298721720D05D8E009A0AB8 /* Products */,
-				D298724120D0608B009A0AB8 /* Frameworks */,
+				D235656F20D9BA77006E3D13 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -92,20 +98,11 @@
 		D298723820D05F7A009A0AB8 /* resources */ = {
 			isa = PBXGroup;
 			children = (
-				D298724720D06A30009A0AB8 /* Config.plist */,
 				D298723920D05F7A009A0AB8 /* LaunchScreen.xib */,
 				D298723A20D05F7A009A0AB8 /* Main_iPhone.storyboard */,
 				D298723B20D05F7A009A0AB8 /* Main_iPad.storyboard */,
 			);
 			path = resources;
-			sourceTree = "<group>";
-		};
-		D298724120D0608B009A0AB8 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				D298724220D0608B009A0AB8 /* TangramMap.framework */,
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -168,7 +165,6 @@
 			files = (
 				D298723E20D05F7A009A0AB8 /* Main_iPad.storyboard in Resources */,
 				D298723D20D05F7A009A0AB8 /* Main_iPhone.storyboard in Resources */,
-				D298724820D06A30009A0AB8 /* Config.plist in Resources */,
 				D298723C20D05F7A009A0AB8 /* LaunchScreen.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -313,6 +309,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.mapzen.ios.TangramDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SYMROOT = ../../../build/ios;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -329,8 +326,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mapzen.ios.TangramDemo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SYMROOT = ../../../build/ios;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
