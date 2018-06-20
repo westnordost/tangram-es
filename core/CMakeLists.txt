@@ -125,7 +125,7 @@ target_include_directories(tangram-core
 
 # Link core library dependencies.
 target_link_libraries(tangram-core
-  PUBLIC
+  PRIVATE
   duktape
   css-color-parser-cpp
   yaml-cpp
@@ -139,7 +139,7 @@ target_link_libraries(tangram-core
 
 if(UNIX AND NOT APPLE)
   # SQLite needs dl dynamic library loader when Linux
-  target_link_libraries(tangram-core PUBLIC dl)
+  target_link_libraries(tangram-core PRIVATE dl)
 endif()
 
 if(TANGRAM_WARN_ON_RULE_CONFLICT)
