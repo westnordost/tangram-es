@@ -223,7 +223,6 @@ cmake-ios:
 	@mkdir -p ${IOS_BUILD_DIR}
 	@cd ${IOS_BUILD_DIR} && \
 	cmake ../.. ${IOS_CMAKE_PARAMS}
-	cp platforms/ios/WorkspaceSettings.xcsettings platforms/ios/Tangram.xcworkspace/xcuserdata/${USER}.xcuserdatad/WorkspaceSettings.xcsettings
 
 IOS_FRAMEWORK_BUILD = xcodebuild -workspace platforms/ios/Tangram.xcworkspace -scheme TangramMap -configuration ${BUILD_TYPE}
 

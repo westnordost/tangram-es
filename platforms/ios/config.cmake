@@ -7,8 +7,14 @@ set(IOS TRUE)
 set(CMAKE_OSX_SYSROOT "iphoneos")
 set(CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphoneos;-iphonesimulator")
 set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "9.3")
+execute_process(COMMAND xcrun --sdk iphoneos --show-sdk-version OUTPUT_VARIABLE IOS_SDK_VERSION OUTPUT_STRIP_TRAILING_WHITESPACE)
+message(STATUS "IOS_SDK_VERSION: ${IOS_SDK_VERSION}")
+### Configure framework build.
 
 # Tell SQLiteCpp to not build its own copy of SQLite, we will use the system library instead.
+if (IOS_SDK_VERSION VERSION_LESS 11.0)
+  set(SQLITE_USE_LEGACY_STRUCT ON CACHE BOOL "")
+endif()
 set(SQLITECPP_INTERNAL_SQLITE OFF CACHE BOOL "")
 
 set(TANGRAM_FRAMEWORK_HEADERS
@@ -77,4 +83,34 @@ set_target_properties(TangramMap PROPERTIES
   XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES"
   XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++14"
   XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++"
+)
+
+### Configure demo app build.
+
+get_nextzen_api_key(NEXTZEN_API_KEY)
+add_definitions(-DNEXTZEN_API_KEY="${NEXTZEN_API_KEY}")
+
+add_bundle_resources(TANGRAM_DEMO_RESOURCES "${PROJECT_SOURCE_DIR}/platforms/ios/demo/resources/" "Resources")
+
+add_executable(TangramDemo MACOSX_BUNDLE
+  platforms/ios/demo/src/AppDelegate.h
+  platforms/ios/demo/src/AppDelegate.m
+  platforms/ios/demo/src/main.m
+  platforms/ios/demo/src/MapViewController.h
+  platforms/ios/demo/src/MapViewController.m
+  ${TANGRAM_DEMO_RESOURCES}
+)
+
+target_link_libraries(TangramDemo PRIVATE
+  TangramMap
+  # Frameworks: use quotes so "-framework X" is treated as a single linker flag.
+  "-framework CoreLocation"
+  "-framework UIKit"
+)
+
+set_target_properties(TangramDemo PROPERTIES
+  MACOSX_BUNDLE_INFO_PLIST ${PROJECT_SOURCE_DIR}/platforms/ios/demo/Info.plist
+  RESOURCE "${TANGRAM_DEMO_RESOURCES}"
+  XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES"
+  XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
 )
