@@ -114,3 +114,26 @@ set_target_properties(TangramDemo PROPERTIES
   XCODE_ATTRIBUTE_CLANG_ENABLE_OBJC_ARC "YES"
   XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
 )
+
+# Copy the framework file into the app bundle after build.
+add_custom_command(TARGET TangramDemo POST_BUILD
+  COMMAND
+  ${CMAKE_COMMAND} -E make_directory
+  $<TARGET_FILE_DIR:TangramDemo>/Frameworks/TangramMap.framework/
+)
+
+add_custom_command(TARGET TangramDemo POST_BUILD
+  COMMAND
+  ${CMAKE_COMMAND} -E copy
+  $<TARGET_FILE:TangramMap>
+  $<TARGET_FILE_DIR:TangramMap>/Info.plist
+  $<TARGET_FILE_DIR:TangramDemo>/Frameworks/TangramMap.framework/
+)
+
+# Codesign the framework file after copying.
+add_custom_command(TARGET TangramDemo POST_BUILD
+  COMMAND
+  codesign
+  $<TARGET_FILE_DIR:TangramDemo>/Frameworks/TangramMap.framework
+  --sign "'\${CODE_SIGN_IDENTITY}'"
+)
