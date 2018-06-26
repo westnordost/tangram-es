@@ -7,7 +7,7 @@
 	<key>CFBundleDisplayName</key>
 	<string>Tangram Demo</string>
 	<key>CFBundleExecutable</key>
-	<string>${EXECUTABLE_NAME}</string>
+	<string>$(PRODUCT_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.mapzen.ios.TangramDemo</string>
 	<key>CFBundleInfoDictionaryVersion</key>
