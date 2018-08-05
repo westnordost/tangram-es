@@ -8,6 +8,10 @@
 # Icon must end with two \r
 Icon
 
+platforms/android/tangram/.externalNativeBuild
+platforms/android/.gradle/
+platforms/android/demo/build
+
 
 # Thumbnails
 ._*
