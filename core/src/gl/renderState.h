@@ -28,6 +28,11 @@ public:
     RenderState& operator=(const RenderState&) = delete;
     RenderState& operator=(RenderState&&) = delete;
 
+    struct BufferDesc {
+        GLuint handle;
+        size_t size;
+    };
+
     // Reset the GL state cache and resource handles.
     // Call this after GL context loss.
     void invalidate();
@@ -114,7 +119,7 @@ public:
 
     void queueVAODeletion(size_t count, GLuint* vao);
 
-    void queueBufferDeletion(size_t count, GLuint* buffers);
+    void queueBufferDeletion(size_t count, BufferDesc* buffers);
 
     void queueFramebufferDeletion(GLuint framebuffer);
 
@@ -125,15 +130,18 @@ public:
     std::unordered_map<std::string, GLuint> fragmentShaders;
     std::unordered_map<std::string, GLuint> vertexShaders;
 
+    GLuint getBuffer(size_t size);
+
 private:
 
     std::mutex m_deletionListMutex;
     std::vector<GLuint> m_VAODeletionList;
-    std::vector<GLuint> m_bufferDeletionList;
     std::vector<GLuint> m_textureDeletionList;
     std::vector<GLuint> m_programDeletionList;
     std::vector<GLuint> m_shaderDeletionList;
     std::vector<GLuint> m_framebufferDeletionList;
+    std::vector<BufferDesc> m_bufferDeletionList;
+    std::vector<BufferDesc> m_bufferFreeList;
 
     uint32_t m_nextTextureUnit = 0;
 

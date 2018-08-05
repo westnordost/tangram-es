@@ -49,7 +49,10 @@ void RenderState::flushResourceDeletion() {
         m_textureDeletionList.clear();
     }
     if (m_bufferDeletionList.size()) {
-        GL::deleteBuffers(m_bufferDeletionList.size(), m_bufferDeletionList.data());
+        m_bufferFreeList.insert(m_bufferFreeList.end(), m_bufferDeletionList.begin(), m_bufferDeletionList.end());
+        std::sort(m_bufferFreeList.begin(), m_bufferFreeList.end(), [](const auto& buffer0, const auto& buffer1) -> bool {
+            return buffer0.size < buffer1.size;
+        });
         m_bufferDeletionList.clear();
     }
     if (m_framebufferDeletionList.size()) {
@@ -84,9 +87,38 @@ void RenderState::queueVAODeletion(size_t count, GLuint* vao) {
     m_VAODeletionList.insert(m_VAODeletionList.end(), vao, vao + count);
 }
 
-void RenderState::queueBufferDeletion(size_t count, GLuint* buffers) {
+void RenderState::queueBufferDeletion(size_t count, BufferDesc* buffers) {
     std::lock_guard<std::mutex> guard(m_deletionListMutex);
     m_bufferDeletionList.insert(m_bufferDeletionList.end(), buffers, buffers + count);
+}
+
+GLuint RenderState::getBuffer(size_t size) {
+    GLuint buffer = 0;
+
+    if (m_bufferFreeList.size() == 0) {
+        GL::genBuffers(1, &buffer);
+        return buffer;
+    }
+
+    auto comparator = [](const auto& b0, const auto& b1) -> bool {
+        return b0.size <= b1.size;
+    };
+
+    BufferDesc bufferDesc { 0, size };
+
+    auto it = std::upper_bound(m_bufferFreeList.begin(), m_bufferFreeList.end(), bufferDesc, comparator);
+
+    buffer = it->handle;
+
+    // TODO: discard buffer with null data for previous size?
+
+    if (it == m_bufferFreeList.end()) {
+        m_bufferFreeList.pop_back();
+    } else {
+        m_bufferFreeList.erase(it);
+    }
+
+    return buffer;
 }
 
 GLuint RenderState::getTextureUnit(GLuint _unit) {
@@ -94,6 +126,7 @@ GLuint RenderState::getTextureUnit(GLuint _unit) {
 }
 
 RenderState::~RenderState() {
+    m_bufferDeletionList.insert(m_bufferDeletionList.end(), m_bufferFreeList.begin(), m_bufferFreeList.end());
 
     deleteQuadIndexBuffer();
     flushResourceDeletion();

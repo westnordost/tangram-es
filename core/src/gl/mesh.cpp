@@ -36,7 +36,10 @@ MeshBase::MeshBase(std::shared_ptr<VertexLayout> _vertexLayout, GLenum _drawMode
 MeshBase::~MeshBase() {
     if (m_rs) {
         if (m_glVertexBuffer || m_glIndexBuffer) {
-            GLuint buffers[] = { m_glVertexBuffer, m_glIndexBuffer };
+            RenderState::BufferDesc buffers[] = {
+                {m_glVertexBuffer, m_nVertices * m_vertexLayout->getStride()},
+                {m_glIndexBuffer, m_nIndices * sizeof(GLushort)}
+            };
             m_rs->queueBufferDeletion(2, buffers);
         }
         m_vaos.dispose(*m_rs);
@@ -108,31 +111,28 @@ void MeshBase::subDataUpload(RenderState& rs, GLbyte* _data) {
 }
 
 void MeshBase::upload(RenderState& rs) {
+    size_t vertexBufferSize = m_nVertices * m_vertexLayout->getStride();
 
     // Generate vertex buffer, if needed
     if (m_glVertexBuffer == 0) {
-        GL::genBuffers(1, &m_glVertexBuffer);
+        m_glVertexBuffer = rs.getBuffer(vertexBufferSize);
     }
 
-    // Buffer vertex data
-    int vertexBytes = m_nVertices * m_vertexLayout->getStride();
-
     rs.vertexBuffer(m_glVertexBuffer);
-    GL::bufferData(GL_ARRAY_BUFFER, vertexBytes, m_glVertexData, m_hint);
+
+    GL::bufferData(GL_ARRAY_BUFFER, vertexBufferSize, m_glVertexData, m_hint);
 
     delete[] m_glVertexData;
     m_glVertexData = nullptr;
 
     if (m_glIndexData) {
-
-        if (m_glIndexBuffer == 0) {
-            GL::genBuffers(1, &m_glIndexBuffer);
-        }
+        size_t indexBufferSize = m_nIndices * sizeof(GLushort);
+        m_glIndexBuffer = rs.getBuffer(vertexBufferSize);
 
         // Buffer element index data
         rs.indexBuffer(m_glIndexBuffer);
 
-        GL::bufferData(GL_ELEMENT_ARRAY_BUFFER, m_nIndices * sizeof(GLushort), m_glIndexData, m_hint);
+        GL::bufferData(GL_ELEMENT_ARRAY_BUFFER, indexBufferSize, m_glIndexData, m_hint);
 
         delete[] m_glIndexData;
         m_glIndexData = nullptr;

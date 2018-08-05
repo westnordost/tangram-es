@@ -28,7 +28,7 @@ public:
      * _vertexLayout to be drawn using the OpenGL primitive type _drawMode
      */
     MeshBase(std::shared_ptr<VertexLayout> _vertexlayout, GLenum _drawMode = GL_TRIANGLES,
-             GLenum _hint = GL_STATIC_DRAW);
+             GLenum _hint = GL_DYNAMIC_DRAW);
 
     MeshBase();
 
