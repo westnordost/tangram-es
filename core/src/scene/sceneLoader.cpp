@@ -1110,17 +1110,9 @@ void SceneLoader::loadSourceRasters(const std::shared_ptr<Platform>& platform, s
 
 void SceneLoader::parseLightPosition(Node position, PointLight& light) {
 
-    const uint8_t allowedUnits = (Unit::pixel | Unit::meter);
     if (position.IsSequence()) {
         UnitVec<glm::vec3> lightPos;
-        std::string positionSequence;
-
-        // Evaluate sequence separated by ',' to parse with parseVec3
-        for (auto n : position) {
-            positionSequence += n.Scalar() + ",";
-        }
-
-        StyleParam::parseVec3(positionSequence, allowedUnits, lightPos);
+        StyleParam::parseVec3(position, UnitSet{Unit::pixel, Unit::meter}, lightPos);
         light.setPosition(lightPos);
     } else {
         LOGNode("Wrong light position parameter", position);
@@ -1231,7 +1223,7 @@ void SceneLoader::loadLight(const std::pair<Node, Node>& node, const std::shared
         if (origin == LightOrigin::world) {
             if (lightPosition.units[0] == Unit::pixel || lightPosition.units[1] == Unit::pixel) {
                 LOGW("Light position with attachment %s may not be used with unit of type %s",
-                    lightOriginString(origin).c_str(), unitString(Unit::pixel).c_str());
+                    lightOriginString(origin).c_str(), unitToString(Unit::pixel).c_str());
                 LOGW("Long/Lat expected in meters");
             }
         }
@@ -1528,12 +1520,7 @@ void SceneLoader::parseStyleParams(Node params, const std::shared_ptr<Scene>& sc
         }
 
         if (key == "texture") {
-            if (value.IsScalar()) {
-                auto strVal = value.Scalar();
-                out.push_back(StyleParam{ StyleParamKey::texture, strVal });
-            } else if (value.IsNull()){
-                out.push_back(StyleParam{ StyleParamKey::texture, "" });
-            }
+            out.push_back(StyleParam{ StyleParamKey::texture, value });
             continue;
         }
 
@@ -1547,11 +1534,11 @@ void SceneLoader::parseStyleParams(Node params, const std::shared_ptr<Scene>& sc
             const std::string& val = value.Scalar();
 
             if (val.compare(0, 8, "function") == 0) {
-                StyleParam param(key, "");
+                StyleParam param(key);
                 param.function = scene->addJsFunction(val);
                 out.push_back(std::move(param));
             } else {
-                out.push_back(StyleParam{ key, val });
+                out.push_back(StyleParam{ key, value });
             }
             break;
         }
@@ -1564,14 +1551,14 @@ void SceneLoader::parseStyleParams(Node params, const std::shared_ptr<Scene>& sc
                         scene->stops().push_back(Stops::Colors(value));
                         out.push_back(StyleParam{ styleKey, &(scene->stops().back()) });
                     } else if (StyleParam::isSize(styleKey)) {
-                        scene->stops().push_back(Stops::Sizes(value, StyleParam::unitsForStyleParam(styleKey)));
+                        scene->stops().push_back(Stops::Sizes(value, StyleParam::unitSetForStyleParam(styleKey)));
                         out.push_back(StyleParam{ styleKey, &(scene->stops().back()) });
                     } else if (StyleParam::isWidth(styleKey)) {
                         scene->stops().push_back(Stops::Widths(value, *scene->mapProjection(),
-                                                              StyleParam::unitsForStyleParam(styleKey)));
+                                                              StyleParam::unitSetForStyleParam(styleKey)));
                         out.push_back(StyleParam{ styleKey, &(scene->stops().back()) });
                     } else if (StyleParam::isOffsets(styleKey)) {
-                        scene->stops().push_back(Stops::Offsets(value, StyleParam::unitsForStyleParam(styleKey)));
+                        scene->stops().push_back(Stops::Offsets(value, StyleParam::unitSetForStyleParam(styleKey)));
                         out.push_back(StyleParam{ styleKey, &(scene->stops().back()) });
                     } else if (StyleParam::isFontSize(styleKey)) {
                         scene->stops().push_back(Stops::FontSize(value));
@@ -1585,8 +1572,7 @@ void SceneLoader::parseStyleParams(Node params, const std::shared_ptr<Scene>& sc
                 }
 
             } else {
-                // TODO optimize for color values
-                out.push_back(StyleParam{ key, YamlUtil::parseSequence(value) });
+                out.push_back(StyleParam{ key, value });
             }
             break;
         }
@@ -1719,7 +1705,7 @@ void SceneLoader::parseTransition(Node params, const std::shared_ptr<Scene>& sce
             // Add the parameter to our key, so it's now 'transition:event:param'.
             std::string transitionEventParam = transitionEvent + DELIMITER + param.first.Scalar();
             // Create a style parameter from the key and value.
-            out.push_back(StyleParam{ transitionEventParam, param.second.Scalar() });
+            out.push_back(StyleParam{ transitionEventParam, param.second });
         }
     }
 }
