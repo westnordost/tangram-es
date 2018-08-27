@@ -1,4 +1,8 @@
 #include "glfwApp.h"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include "GL/gl3w.h"
 #include <GLFW/glfw3.h>
 #include <cstdlib>
 
@@ -130,6 +134,8 @@ void create(std::shared_ptr<Platform> p, int w, int h) {
     std::snprintf(versionString, sizeof(versionString), "Tangram ES %d.%d.%d " BUILD_NUM_STRING,
         TANGRAM_VERSION_MAJOR, TANGRAM_VERSION_MINOR, TANGRAM_VERSION_PATCH);
 
+    const char* glsl_version = "#version 120";
+
     // Create a windowed mode window and its OpenGL context
     glfwWindowHint(GLFW_SAMPLES, 2);
     glfwWindowHint(GLFW_STENCIL_BITS, 8);
@@ -142,6 +148,8 @@ void create(std::shared_ptr<Platform> p, int w, int h) {
 
     // Make the main_window's context current
     glfwMakeContextCurrent(main_window);
+    glfwSwapInterval(1); // Enable vsync
+    gl3wInit();
 
     // Set input callbacks
     glfwSetFramebufferSizeCallback(main_window, framebufferResizeCallback);
@@ -157,6 +165,18 @@ void create(std::shared_ptr<Platform> p, int w, int h) {
     glfwGetFramebufferSize(main_window, &fWidth, &fHeight);
     framebufferResizeCallback(main_window, fWidth, fHeight);
 
+    // Setup ImGui binding
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
+    ImGui_ImplGlfw_InitForOpenGL(main_window, false);
+    ImGui_ImplOpenGL3_Init(glsl_version);
+
+    // Setup style
+    ImGui::StyleColorsDark();
+
 }
 
 void run() {
@@ -168,6 +188,14 @@ void run() {
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(main_window)) {
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // Create ImGui interface.
+        ImGui::Text("Hello, world!");
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
         double currentTime = glfwGetTime();
         double delta = currentTime - lastTime;
         lastTime = currentTime;
@@ -175,6 +203,10 @@ void run() {
         // Render
         map->update(delta);
         map->render();
+
+        // Render ImGui interface.
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // Swap front and back buffers
         glfwSwapBuffers(main_window);
