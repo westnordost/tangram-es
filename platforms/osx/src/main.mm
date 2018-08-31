@@ -58,20 +58,6 @@ using namespace Tangram;
     [fileMenu addItemWithTitle:@"Reload Scene"
                        action:@selector(startFileReload)
                 keyEquivalent:@"r"].target = self;
-
-    // Set up Edit menu.
-    NSMenuItem* editMenuItem = [mainMenu insertItemWithTitle:@"" action:nil keyEquivalent:@"" atIndex:2];
-    NSMenu* editMenu = [[NSMenu alloc] init];
-    [editMenuItem setSubmenu:editMenu];
-    [editMenu setTitle:@"Edit"];
-
-    [editMenu addItemWithTitle:@"Copy"
-                        action:@selector(copyEditorTextToClipboard)
-                 keyEquivalent:@"c"].target = self;
-
-    [editMenu addItemWithTitle:@"Paste"
-                        action:@selector(pasteEditorTextFromClipboard)
-                 keyEquivalent:@"v"].target = self;
 }
 
 + (void)startApiKeyInput
