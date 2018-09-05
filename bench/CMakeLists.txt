@@ -3,6 +3,7 @@ set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "")
 set(BENCHMARK_ENABLE_LTO OFF CACHE BOOL "")
 add_subdirectory(benchmark)
 target_compile_options(benchmark PRIVATE -O3 -DNDEBUG)
+set_target_properties(benchmark PROPERTIES EXCLUDE_FROM_ALL 1)
 
 set(BENCH_SOURCES
   src/builders.cpp
@@ -38,6 +39,7 @@ foreach(_src_file_path ${BENCH_SOURCES})
   set_target_properties(${EXECUTABLE_NAME}
     PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/bench"
+    EXCLUDE_FROM_ALL 1
   )
 
   add_resources(${EXECUTABLE_NAME} "${PROJECT_SOURCE_DIR}/scenes")

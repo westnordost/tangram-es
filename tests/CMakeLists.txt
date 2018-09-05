@@ -14,6 +14,8 @@ target_include_directories(platform_test
   ${CMAKE_CURRENT_SOURCE_DIR}/catch
 )
 
+set_target_properties(platform_test PROPERTIES EXCLUDE_FROM_ALL 1)
+
 set(TEST_SOURCES
   unit/curlTests.cpp
   unit/drawRuleTests.cpp
@@ -63,6 +65,7 @@ foreach(_src_file_path ${TEST_SOURCES})
   set_target_properties(${EXECUTABLE_NAME}
     PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/unit"
+    EXCLUDE_FROM_ALL 1
   )
 
 endforeach()

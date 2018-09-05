@@ -57,22 +57,18 @@ endif()
 # Add core library.
 add_subdirectory(core)
 
-if(BENCHMARK OR UNIT_TESTS)
-  add_library(platform_mock
-    tests/src/mockPlatform.cpp
-    tests/src/gl_mock.cpp
-  )
-  target_include_directories(platform_mock PUBLIC tests/src)
-  target_compile_definitions(platform_mock PUBLIC -DUNIT_TESTS)
-  target_link_libraries(platform_mock PUBLIC tangram-core)
-endif()
+# The test and benchmark targets below are all excluded from the 'all' build.
+# Build them by specifically naming them as a build target.
 
-if(UNIT_TESTS)
-  message(STATUS "Building tests")
-  add_subdirectory(tests)
-endif()
+add_library(platform_mock
+  tests/src/mockPlatform.cpp
+  tests/src/gl_mock.cpp
+)
+target_include_directories(platform_mock PUBLIC tests/src)
+target_compile_definitions(platform_mock PUBLIC -DUNIT_TESTS)
+target_link_libraries(platform_mock PUBLIC tangram-core)
+set_target_properties(platform_mock PROPERTIES EXCLUDE_FROM_ALL 1)
 
-if(BENCHMARK)
-  message(STATUS "Building benchmarks")
-  add_subdirectory(bench)
-endif()
+add_subdirectory(tests)
+
+add_subdirectory(bench)
