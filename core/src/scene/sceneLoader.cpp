@@ -534,26 +534,31 @@ MaterialTexture SceneLoader::loadMaterialTexture(const std::shared_ptr<Platform>
     return matTex;
 }
 
-bool SceneLoader::extractTexFiltering(Node& filtering, TextureFiltering& filter) {
-    const std::string& textureFiltering = filtering.Scalar();
-    if (textureFiltering == "linear") {
-        filter.min = filter.mag = GL_LINEAR;
-        return false;
-    } else if (textureFiltering == "mipmap") {
-        filter.min = GL_LINEAR_MIPMAP_LINEAR;
-        return true;
-    } else if (textureFiltering == "nearest") {
-        filter.min = filter.mag = GL_NEAREST;
-        return false;
-    } else {
+bool SceneLoader::parseTexFiltering(Node& filteringNode, Texture::Options& options) {
+    if (!filteringNode.IsScalar()) {
         return false;
     }
+    const std::string& filteringString = filteringNode.Scalar();
+    if (filteringString == "linear") {
+        options.minFilter = Texture::MinFilter::LINEAR;
+        options.magFilter = Texture::MagFilter::LINEAR;
+        return true;
+    } else if (filteringString == "mipmap") {
+        options.minFilter = Texture::MinFilter::LINEAR_MIPMAP_LINEAR;
+        options.generateMipmaps = true;
+        return true;
+    } else if (filteringString == "nearest") {
+        options.minFilter = Texture::MinFilter::NEAREST;
+        options.magFilter = Texture::MagFilter::NEAREST;
+        return true;
+    }
+    return false;
 }
 
 
 std::shared_ptr<Texture> SceneLoader::fetchTexture(const std::shared_ptr<Platform>& platform,
                                                    const std::string& name, const std::string& urlString,
-                                                   const TextureOptions& options, bool generateMipmaps,
+                                                   const Texture::Options& options,
                                                    const std::shared_ptr<Scene>& scene,
                                                    float density, std::unique_ptr<SpriteAtlas> _atlas) {
     std::shared_ptr<Texture> texture;
@@ -575,7 +580,7 @@ std::shared_ptr<Texture> SceneLoader::fetchTexture(const std::shared_ptr<Platfor
             LOGE("Can't decode Base64 texture");
             return nullptr;
         }
-        texture = std::make_shared<Texture>(0, 0, options, generateMipmaps, density);
+        texture = std::make_shared<Texture>(0, 0, options, density);
 
         std::vector<char> textureData;
         auto cdata = reinterpret_cast<char*>(blob.data());
@@ -584,7 +589,7 @@ std::shared_ptr<Texture> SceneLoader::fetchTexture(const std::shared_ptr<Platfor
             LOGE("Invalid Base64 texture");
         }
     } else {
-        texture = std::make_shared<Texture>(std::vector<char>(), options, generateMipmaps, density);
+        texture = std::make_shared<Texture>(std::vector<char>(), options, density);
         texture->spriteAtlas() = std::move(_atlas);
 
         scene->pendingTextures++;
@@ -620,9 +625,8 @@ std::shared_ptr<Texture> SceneLoader::getOrLoadTexture(const std::shared_ptr<Pla
     }
 
     // If texture could not be found by name then interpret name as URL
-    TextureOptions options = {GL_RGBA, GL_RGBA, {GL_LINEAR, GL_LINEAR}, {GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE}};
-
-    auto texture = fetchTexture(platform, name, name, options, false, scene);
+    Texture::Options options;
+    auto texture = fetchTexture(platform, name, name, options, scene);
 
     scene->textures().emplace(name, texture);
 
@@ -641,7 +645,7 @@ void SceneLoader::loadTexture(const std::shared_ptr<Platform>& platform, const s
     }
 
     std::string url;
-    TextureOptions options = {GL_RGBA, GL_RGBA, {GL_LINEAR, GL_LINEAR}, {GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE} };
+    Texture::Options options;
 
     if (Node urlNode = textureConfig["url"]) {
         url = urlNode.as<std::string>();
@@ -650,11 +654,9 @@ void SceneLoader::loadTexture(const std::shared_ptr<Platform>& platform, const s
         return;
     }
 
-    bool generateMipmaps = false;
-
     if (Node filtering = textureConfig["filtering"]) {
-        if (extractTexFiltering(filtering, options.filtering)) {
-            generateMipmaps = true;
+        if (!parseTexFiltering(filtering, options)) {
+            LOGW("Invalid texture filtering: %s", Dump(filtering).c_str());
         }
     }
 
@@ -682,7 +684,7 @@ void SceneLoader::loadTexture(const std::shared_ptr<Platform>& platform, const s
             }
         }
     }
-    auto texture = fetchTexture(platform, name, url, options, generateMipmaps, scene, density, std::move(atlas));
+    auto texture = fetchTexture(platform, name, url, options, scene, density, std::move(atlas));
 
     scene->textures().emplace(name, texture);
 }
@@ -1041,16 +1043,14 @@ void SceneLoader::loadSource(const std::shared_ptr<Platform>& platform, const st
         sourcePtr = std::make_shared<ClientGeoJsonSource>(platform, name, url, generateCentroids,
                                                           zoomOptions);
     } else if (type == "Raster") {
-        TextureOptions options = {GL_RGBA, GL_RGBA, {GL_LINEAR, GL_LINEAR}, {GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE} };
-        bool generateMipmaps = false;
+        Texture::Options options;
         if (Node filtering = source["filtering"]) {
-            if (extractTexFiltering(filtering, options.filtering)) {
-                generateMipmaps = true;
+            if (!parseTexFiltering(filtering, options)) {
+                LOGW("Invalid texture filtering: %s", Dump(filtering).c_str());
             }
         }
 
-        sourcePtr = std::make_shared<RasterSource>(name, std::move(rawSources), options, zoomOptions,
-                                                   generateMipmaps);
+        sourcePtr = std::make_shared<RasterSource>(name, std::move(rawSources), options, zoomOptions);
     } else {
         sourcePtr = std::make_shared<TileSource>(name, std::move(rawSources), zoomOptions);
 

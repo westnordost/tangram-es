@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gl/uniform.h"
+#include "gl/texture.h"
 #include "map.h"
 #include "scene/scene.h"
 
@@ -26,7 +27,6 @@ struct Filter;
 struct MaterialTexture;
 struct StyleParam;
 struct TextureFiltering;
-struct TextureOptions;
 
 // 0: type, 1: values
 struct StyleUniform {
@@ -71,10 +71,10 @@ struct SceneLoader {
     /* loads a texture with default texture properties */
     static std::shared_ptr<Texture> getOrLoadTexture(const std::shared_ptr<Platform>& platform, const std::string& url, const std::shared_ptr<Scene>& scene);
     static std::shared_ptr<Texture> fetchTexture(const std::shared_ptr<Platform>& platform, const std::string& name, const std::string& url,
-                                                 const TextureOptions& options, bool generateMipmaps, const std::shared_ptr<Scene>& scene,
+                                                 const Texture::Options& options, const std::shared_ptr<Scene>& scene,
                                                  float density = 1.f, std::unique_ptr<SpriteAtlas> _atlas = nullptr);
 
-    static bool extractTexFiltering(Node& filtering, TextureFiltering& filter);
+    static bool parseTexFiltering(Node& filteringNode, Texture::Options& options);
 
     static MaterialTexture loadMaterialTexture(const std::shared_ptr<Platform>& platform, Node matCompNode,
                                                const std::shared_ptr<Scene>& scene, Style& style);

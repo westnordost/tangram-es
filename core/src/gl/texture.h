@@ -11,37 +11,49 @@ namespace Tangram {
 
 class RenderState;
 
-struct TextureFiltering {
-    GLenum min;
-    GLenum mag;
-};
-
-struct TextureWrapping {
-    GLenum wraps;
-    GLenum wrapt;
-};
-
-struct TextureOptions {
-    GLenum internalFormat;
-    GLenum format;
-    TextureFiltering filtering;
-    TextureWrapping wrapping;
-};
-
-#define DEFAULT_TEXTURE_OPTION \
-    {GL_ALPHA, GL_ALPHA, \
-    {GL_LINEAR, GL_LINEAR}, \
-    {GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE}}
-
 class Texture {
 
 public:
 
-    Texture(unsigned int _width, unsigned int _height, TextureOptions _options = DEFAULT_TEXTURE_OPTION,
-            bool _generateMipmaps = false, float _density = 1.f);
+    enum class MinFilter : GLenum {
+        NEAREST = GL_NEAREST,
+        LINEAR = GL_LINEAR,
+        NEAREST_MIPMAP_NEAREST = GL_NEAREST_MIPMAP_NEAREST,
+        LINEAR_MIPMAP_NEAREST = GL_LINEAR_MIPMAP_NEAREST,
+        NEAREST_MIPMAP_LINEAR = GL_NEAREST_MIPMAP_LINEAR,
+        LINEAR_MIPMAP_LINEAR = GL_LINEAR_MIPMAP_LINEAR,
+    };
 
-    Texture(const std::vector<char>& _data, TextureOptions _options = DEFAULT_TEXTURE_OPTION,
-            bool _generateMipmaps = false, float _density = 1.f);
+    enum class MagFilter : GLenum {
+        NEAREST = GL_NEAREST,
+        LINEAR = GL_LINEAR,
+    };
+
+    enum class Wrap : GLenum {
+        CLAMP_TO_EDGE = GL_CLAMP_TO_EDGE,
+        REPEAT = GL_REPEAT,
+    };
+
+    enum class PixelFormat : GLenum {
+        ALPHA = GL_ALPHA,
+        LUMINANCE = GL_LUMINANCE,
+        LUMINANCE_ALPHA = GL_LUMINANCE_ALPHA,
+        RGB = GL_RGB,
+        RGBA = GL_RGBA,
+    };
+
+    struct Options {
+        MinFilter minFilter = MinFilter::LINEAR;
+        MagFilter magFilter = MagFilter::LINEAR;
+        Wrap wrapS = Wrap::CLAMP_TO_EDGE;
+        Wrap wrapT = Wrap::CLAMP_TO_EDGE;
+        PixelFormat pixelFormat = PixelFormat::RGBA;
+        bool generateMipmaps = false;
+    };
+
+    Texture(unsigned int _width, unsigned int _height, Options _options, float _density = 1.f);
+
+    Texture(const std::vector<char>& _data, Options _options, float _density = 1.f);
 
     Texture(Texture&& _other);
     Texture& operator=(Texture&& _other);
@@ -83,8 +95,6 @@ public:
 
     static void invalidateAllTextures();
 
-    static bool isRepeatWrapping(TextureWrapping _wrapping);
-
     bool loadImageFromMemory(const std::vector<char>& _data);
 
     static void flipImageData(unsigned char *result, int w, int h, int depth);
@@ -102,7 +112,7 @@ protected:
 
     void generate(RenderState& rs, GLuint _textureUnit);
 
-    TextureOptions m_options;
+    Options m_options;
     std::vector<GLuint> m_data;
     GLuint m_glHandle;
 
@@ -123,7 +133,6 @@ protected:
 
 private:
 
-    bool m_generateMipmaps;
     // used to determine css size by using as a multiplier with the defined texture size/sprite size
     float m_invDensity = 1.f;
 

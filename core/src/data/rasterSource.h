@@ -15,8 +15,7 @@ class RasterTileTask;
 
 class RasterSource : public TileSource {
 
-    TextureOptions m_texOptions;
-    bool m_genMipmap;
+    Texture::Options m_texOptions;
     std::unordered_map<TileID, std::shared_ptr<Texture>> m_textures;
 
     std::shared_ptr<Texture> m_emptyTexture;
@@ -29,8 +28,7 @@ protected:
 public:
 
     RasterSource(const std::string& _name, std::unique_ptr<DataSource> _sources,
-                 TextureOptions _options, TileSource::ZoomOptions _zoomOptions = {},
-                 bool genMipmap = false);
+                 Texture::Options _options, TileSource::ZoomOptions _zoomOptions = {});
 
     // TODO Is this always PNG or can it also be JPEG?
     virtual const char* mimeType() const override { return "image/png"; };

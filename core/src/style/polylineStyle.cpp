@@ -115,7 +115,9 @@ void PolylineStyle::constructShaderProgram() {
     m_shaderSource->setSourceStrings(polyline_fs, polyline_vs);
 
     if (m_dashArray.size() > 0) {
-        TextureOptions options {GL_RGBA, GL_RGBA, {GL_NEAREST, GL_NEAREST}, {GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE}};
+        Texture::Options options;
+        options.minFilter = Texture::MinFilter::NEAREST;
+        options.magFilter = Texture::MagFilter::NEAREST;
         // provides precision for dash patterns that are a fraction of line width
         auto pixels = DashArray::render(m_dashArray, dash_scale);
 
