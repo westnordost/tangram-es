@@ -192,7 +192,7 @@
 
     TGMapView *mapView = (TGMapView *)self.view;
 
-    [mapView loadSceneAsyncFromURL:[NSURL URLWithString:@"https://www.nextzen.org/carto/bubble-wrap-style/9/bubble-wrap-style.zip"] withUpdates:updates];
+    [mapView loadSceneAsyncFromURL:[NSURL URLWithString:@"https://tangrams.github.io/bubble-wrap/bubble-wrap-style.yaml"] withUpdates:updates];
 
     //Location tracking marker setup
     TGMarker* markerPoint = [mapView markerAdd];

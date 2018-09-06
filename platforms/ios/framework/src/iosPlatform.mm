@@ -30,6 +30,49 @@ void initGLExtensions() {
     // No-op
 }
 
+void decodeImageData(NSData* data, ImageUrlResponse& response) {
+    CGImageSourceRef imageSourceRef = CGImageSourceCreateWithData((CFDataRef)data, NULL);
+    if (!imageSourceRef) {
+        response.error = "CGImageSourceCreateWithData failed";
+        return;
+    }
+    CGImageRef imageRef = CGImageSourceCreateImageAtIndex(imageSourceRef, 0, NULL);
+    if (!imageRef) {
+        response.error = "CGImageSourceCreateImageAtIndex failed";
+        return;
+    }
+    size_t width = CGImageGetWidth(imageRef);
+    size_t height = CGImageGetHeight(imageRef);
+
+    CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceRGB();
+    if (!colorSpaceRef) {
+        response.error = "CGColorSpaceCreateDeviceRGB failed";
+        return;
+    }
+
+    constexpr const size_t bitsPerComponent = 8;
+    constexpr const size_t bytesPerPixel = 4;
+    const size_t bytesPerRow = bytesPerPixel * width;
+    response.data.resize(bytesPerRow * height);
+    CGContextRef contextRef = CGBitmapContextCreate(response.data.data(), width, height, bitsPerComponent, bytesPerRow,
+                                                    colorSpaceRef, kCGBitmapByteOrderDefault | kCGImageAlphaPremultipliedLast);
+    if (!contextRef) {
+        response.error = "CGBitmapContextCreate failed";
+        return;
+    }
+    CGContextSetBlendMode(contextRef, kCGBlendModeCopy);
+    CGContextTranslateCTM(contextRef, 0.0, height);
+    CGContextScaleCTM(contextRef, 1.0, -1.0);
+    CGContextDrawImage(contextRef, CGRectMake(0, 0, width, height), imageRef);
+    response.width = width;
+    response.height = height;
+
+    CGContextRelease(contextRef);
+    CGColorSpaceRelease(colorSpaceRef);
+    CGImageRelease(imageRef);
+    CFRelease(imageSourceRef);
+}
+
 iOSPlatform::iOSPlatform(__weak TGMapView* _mapView) :
     Platform(),
     m_mapView(_mapView) {}
@@ -183,6 +226,59 @@ UrlRequestHandle iOSPlatform::startUrlRequest(Url _url, UrlCallback _callback) {
         [data enumerateByteRangesUsingBlock:^(const void * _Nonnull bytes, NSRange byteRange, BOOL * _Nonnull stop) {
             memcpy(urlResponse.content.data() + byteRange.location, bytes, byteRange.length);
         }];
+
+        // Run the callback from the requester.
+        if (_callback) {
+            _callback(urlResponse);
+        }
+    };
+
+    NSString* urlAsString = [NSString stringWithUTF8String:_url.string().c_str()];
+    NSURL* url = [NSURL URLWithString:urlAsString];
+    NSUInteger taskIdentifier = [urlHandler downloadRequestAsync:url completionHandler:handler];
+
+    return taskIdentifier;
+}
+
+UrlRequestHandle iOSPlatform::startImageUrlRequest(Tangram::Url _url, Tangram::ImageUrlCallback _callback) {
+    __strong TGMapView* mapView = m_mapView;
+
+    ImageUrlResponse errorResponse;
+    if (!mapView) {
+        errorResponse.error = "MapView not initialized.";
+        _callback(errorResponse);
+        return 0;
+    }
+
+    id<TGURLHandler> urlHandler = mapView.urlHandler;
+
+    if (!urlHandler) {
+        errorResponse.error = "urlHandler not set in MapView";
+        _callback(errorResponse);
+        return 0;
+    }
+
+    TGDownloadCompletionHandler handler = ^void (NSData* data, NSURLResponse* response, NSError* error) {
+
+        // Create our response object. The '__block' specifier is to allow mutation in the data-copy block below.
+        __block ImageUrlResponse urlResponse;
+
+        // Check for errors from NSURLSession, then check for HTTP errors.
+        if (error != nil) {
+
+            urlResponse.error = [error.localizedDescription UTF8String];
+
+        } else if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
+
+            NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
+            long statusCode = [httpResponse statusCode];
+            if (statusCode < 200 || statusCode >= 300) {
+                urlResponse.error = [[NSHTTPURLResponse localizedStringForStatusCode: statusCode] UTF8String];
+            }
+        }
+
+        // Decode the response data into pixel data.
+        decodeImageData(data, urlResponse);
 
         // Run the callback from the requester.
         if (_callback) {

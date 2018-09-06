@@ -71,9 +71,9 @@ void decodeImageData(NSData* data, ImageUrlResponse& response) {
     response.width = width;
     response.height = height;
 
-    CFRelease(contextRef);
-    CFRelease(colorSpaceRef);
-    CFRelease(imageRef);
+    CGContextRelease(contextRef);
+    CGColorSpaceRelease(colorSpaceRef);
+    CGImageRelease(imageRef);
     CFRelease(imageSourceRef);
 }
 

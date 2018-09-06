@@ -30,8 +30,8 @@ using UrlCallback = std::function<void(UrlResponse)>;
 struct ImageUrlResponse {
     std::vector<char> data;
     const char* error = nullptr;
-    int width = 0;
-    int height = 0;
+    size_t width = 0;
+    size_t height = 0;
 };
 
 // Function type for receiving data from an Image URL request.
