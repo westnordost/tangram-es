@@ -26,6 +26,17 @@ struct UrlResponse {
 // Function type for receiving data from a URL request.
 using UrlCallback = std::function<void(UrlResponse)>;
 
+// Result of an Image URL request.
+struct ImageUrlResponse {
+    std::vector<char> data;
+    const char* error = nullptr;
+    int width = 0;
+    int height = 0;
+};
+
+// Function type for receiving data from an Image URL request.
+using ImageUrlCallback = std::function<void(ImageUrlResponse)>;
+
 using FontSourceLoader = std::function<std::vector<char>()>;
 
 struct FontSourceHandle {
@@ -75,6 +86,9 @@ public:
     // was retrieved from the URL _url. The callback may run on a different
     // thread than the original call to startUrlRequest.
     virtual UrlRequestHandle startUrlRequest(Url _url, UrlCallback _callback) = 0;
+
+    // Start retrieving and decoding data from a URL for an image file asynchronously.
+    virtual UrlRequestHandle startImageUrlRequest(Url _url, ImageUrlCallback _callback) = 0;
 
     // Stop retrieving data from a URL that was previously requested. When a
     // request is canceled its callback will still be run, but the response

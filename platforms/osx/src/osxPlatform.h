@@ -16,6 +16,7 @@ public:
     void requestRender() const override;
     std::vector<FontSourceHandle> systemFontFallbacksHandle() const override;
     UrlRequestHandle startUrlRequest(Url _url, UrlCallback _callback) override;
+    UrlRequestHandle startImageUrlRequest(Url _url, ImageUrlCallback _callback) override;
     void cancelUrlRequest(UrlRequestHandle _request) override;
 
     FontSourceHandle systemFont(const std::string& _name, const std::string& _weight, const std::string& _face) const override;

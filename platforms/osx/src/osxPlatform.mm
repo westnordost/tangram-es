@@ -8,6 +8,7 @@
 #import <cstdio>
 #import <map>
 #import <AppKit/AppKit.h>
+#import <ImageIO/ImageIO.h>
 
 namespace Tangram {
 
@@ -31,6 +32,49 @@ void initGLExtensions() {
 
 void OSXPlatform::requestRender() const {
     glfwPostEmptyEvent();
+}
+
+void decodeImageData(NSData* data, ImageUrlResponse& response) {
+    CGImageSourceRef imageSourceRef = CGImageSourceCreateWithData((CFDataRef)data, NULL);
+    if (!imageSourceRef) {
+        response.error = "CGImageSourceCreateWithData failed";
+        return;
+    }
+    CGImageRef imageRef = CGImageSourceCreateImageAtIndex(imageSourceRef, 0, NULL);
+    if (!imageRef) {
+        response.error = "CGImageSourceCreateImageAtIndex failed";
+        return;
+    }
+    size_t width = CGImageGetWidth(imageRef);
+    size_t height = CGImageGetHeight(imageRef);
+
+    CGColorSpaceRef colorSpaceRef = CGColorSpaceCreateDeviceRGB();
+    if (!colorSpaceRef) {
+        response.error = "CGColorSpaceCreateDeviceRGB failed";
+        return;
+    }
+
+    constexpr const size_t bitsPerComponent = 8;
+    constexpr const size_t bytesPerPixel = 4;
+    const size_t bytesPerRow = bytesPerPixel * width;
+    response.data.resize(bytesPerRow * height);
+    CGContextRef contextRef = CGBitmapContextCreate(response.data.data(), width, height, bitsPerComponent, bytesPerRow,
+                                                    colorSpaceRef, kCGBitmapByteOrderDefault | kCGImageAlphaPremultipliedLast);
+    if (!contextRef) {
+        response.error = "CGBitmapContextCreate failed";
+        return;
+    }
+    CGContextSetBlendMode(contextRef, kCGBlendModeCopy);
+    CGContextTranslateCTM(contextRef, 0.0, height);
+    CGContextScaleCTM(contextRef, 1.0, -1.0);
+    CGContextDrawImage(contextRef, CGRectMake(0, 0, width, height), imageRef);
+    response.width = width;
+    response.height = height;
+
+    CFRelease(contextRef);
+    CFRelease(colorSpaceRef);
+    CFRelease(imageRef);
+    CFRelease(imageSourceRef);
 }
 
 OSXPlatform::OSXPlatform() {
@@ -181,6 +225,43 @@ UrlRequestHandle OSXPlatform::startUrlRequest(Url _url, UrlCallback _callback) {
 
     return [dataTask taskIdentifier];
 
+}
+
+UrlRequestHandle OSXPlatform::startImageUrlRequest(Tangram::Url _url, Tangram::ImageUrlCallback _callback) {
+    void (^handler)(NSData*, NSURLResponse*, NSError*) = ^void (NSData* data, NSURLResponse* response, NSError* error) {
+
+        // Create our response object. The '__block' specifier is to allow mutation in the data-copy block below.
+        __block ImageUrlResponse urlResponse;
+
+        // Check for errors from NSURLSession, then check for HTTP errors.
+        if (error != nil) {
+
+            urlResponse.error = [error.localizedDescription UTF8String];
+
+        } else if ([response isKindOfClass:[NSHTTPURLResponse class]]) {
+
+            NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
+            int statusCode = [httpResponse statusCode];
+            if (statusCode >= 400) {
+                urlResponse.error = [[NSHTTPURLResponse localizedStringForStatusCode: statusCode] UTF8String];
+            }
+        }
+
+        // Decode the response data into pixel data.
+        decodeImageData(data, urlResponse);
+
+        // Run the callback from the requester.
+        if (_callback) {
+            _callback(urlResponse);
+        }
+    };
+
+    NSURL* nsUrl = [NSURL URLWithString:[NSString stringWithUTF8String:_url.string().c_str()]];
+    NSURLSessionDataTask* dataTask = [m_urlSession dataTaskWithURL:nsUrl completionHandler:handler];
+
+    [dataTask resume];
+
+    return [dataTask taskIdentifier];
 }
 
 void OSXPlatform::cancelUrlRequest(UrlRequestHandle handle) {

@@ -593,14 +593,14 @@ std::shared_ptr<Texture> SceneLoader::fetchTexture(const std::shared_ptr<Platfor
         texture->spriteAtlas() = std::move(_atlas);
 
         scene->pendingTextures++;
-        scene->startUrlRequest(platform, url, [&, url, scene, texture](UrlResponse response) {
+        // FIXME: This breaks URLs for files within zip bundles.
+        platform->startImageUrlRequest(url, [&, url, scene, texture](ImageUrlResponse response) {
                 if (response.error) {
                     LOGE("Error retrieving URL '%s': %s", url.string().c_str(), response.error);
                 } else {
                     if (texture) {
-                        if (!texture->loadImageFromMemory(std::move(response.content))) {
-                            LOGE("Invalid texture data from URL '%s'", url.string().c_str());
-                        }
+                        texture->setData((GLuint*)response.data.data(), response.data.size() / 4);
+                        texture->resize(response.width, response.height);
                         if (texture->spriteAtlas()) {
                             texture->spriteAtlas()->updateSpriteNodes({texture->getWidth(), texture->getHeight()});
                         }

@@ -66,7 +66,7 @@ public:
     virtual void update(RenderState& rs, GLuint _textureSlot, const GLuint* data);
 
     /* Resize the texture */
-    void resize(const unsigned int _width, const unsigned int _height);
+    void resize(unsigned int _width, unsigned int _height);
 
     /* Width and Height texture getters */
     unsigned int getWidth() const { return m_width; }
@@ -90,10 +90,6 @@ public:
 
     /* Checks whether the texture has valid data and has been successfully uploaded to GPU */
     bool isValid() const;
-
-    typedef std::pair<GLuint, GLuint> TextureSlot;
-
-    static void invalidateAllTextures();
 
     bool loadImageFromMemory(const std::vector<char>& _data);
 
