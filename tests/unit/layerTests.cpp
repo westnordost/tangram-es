@@ -6,6 +6,8 @@
 
 using namespace Tangram;
 
+namespace LayerTests {
+
 using Context = StyleContext;
 
 // Functions to initialize SceneLayer instances
@@ -216,3 +218,5 @@ TEST_CASE("SceneLayer correctly merges rules matched from sublayer", "[SceneLaye
     REQUIRE(matches[0].findParameter(StyleParamKey::order).value.get<std::string>() == "value_c");
 
 }
+
+} // namespace LayerTests

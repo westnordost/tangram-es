@@ -1,22 +1,5 @@
-
-add_library(platform_test
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/catch.cpp
-)
-
-target_link_libraries(platform_test
-  PUBLIC
-  platform_mock
-  -lpthread
-)
-
-target_include_directories(platform_test
-  PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/catch
-)
-
-set_target_properties(platform_test PROPERTIES EXCLUDE_FROM_ALL 1)
-
-set(TEST_SOURCES
+add_executable(allTests
+  src/catch.cpp
   unit/curlTests.cpp
   unit/drawRuleTests.cpp
   unit/dukTests.cpp
@@ -44,31 +27,20 @@ set(TEST_SOURCES
   unit/yamlFilterTests.cpp
 )
 
-# create an executable per test
-foreach(_src_file_path ${TEST_SOURCES})
-  string(REPLACE ".cpp" "" test_case ${_src_file_path})
-  string(REGEX MATCH "([^/]*)$" test_name ${test_case})
+target_link_libraries(allTests
+  tangram-core
+  platform_mock
+)
 
-  set(EXECUTABLE_NAME "${test_name}.out")
-  add_executable(${EXECUTABLE_NAME} ${_src_file_path})
+# Use all include directories from tangram-core because tests interact with internal classes.
+target_include_directories(allTests PRIVATE
+  $<TARGET_PROPERTY:tangram-core,INCLUDE_DIRECTORIES>
+  catch
+)
 
-  target_link_libraries(${EXECUTABLE_NAME}
-    tangram-core
-    platform_test
-  )
+set_target_properties(allTests PROPERTIES
+  EXCLUDE_FROM_ALL 1
+)
 
-  # Use all include directories from tangram-core because tests interact with internal classes.
-  target_include_directories(${EXECUTABLE_NAME} PRIVATE
-    $<TARGET_PROPERTY:tangram-core,INCLUDE_DIRECTORIES>
-  )
-
-  set_target_properties(${EXECUTABLE_NAME}
-    PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/unit"
-    EXCLUDE_FROM_ALL 1
-  )
-
-endforeach()
-
-# Copy resources into output directory (only needs to be performed for one target)
-add_resources(${EXECUTABLE_NAME} "${PROJECT_SOURCE_DIR}/scenes")
+# Copy resources into output directory
+add_resources(allTests "${PROJECT_SOURCE_DIR}/scenes")

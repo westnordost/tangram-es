@@ -9,6 +9,8 @@
 
 using namespace Tangram;
 
+namespace DrawRuleTests {
+
 // Functions to initialize DrawRule instances
 const int dg1 = 0;
 const int dg2 = 1;
@@ -205,3 +207,5 @@ TEST_CASE("DrawRule correctly reports that it doesn't contain a parameter", "[Dr
 
 
 }
+
+} // namespace DrawRuleTests
