@@ -66,7 +66,6 @@ BENCH_CMAKE_PARAMS = \
 	${CMAKE_OPTIONS}
 
 UNIT_TESTS_CMAKE_PARAMS = \
-	-DUNIT_TESTS=1 \
 	-DAPPLICATION=0 \
 	-DCMAKE_BUILD_TYPE=Debug \
 	${CMAKE_OPTIONS}
@@ -272,7 +271,7 @@ cmake-tizen-x86:
 
 tests:
 	cmake -H. -B${TESTS_BUILD_DIR} ${UNIT_TESTS_CMAKE_PARAMS}
-	cmake --build ${TESTS_BUILD_DIR}
+	cmake --build ${TESTS_BUILD_DIR} --target allTests
 
 benchmark:
 	cmake -H. -B${BENCH_BUILD_DIR} ${BENCH_CMAKE_PARAMS}
