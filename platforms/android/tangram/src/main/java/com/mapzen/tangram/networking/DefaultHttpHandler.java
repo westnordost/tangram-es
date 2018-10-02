@@ -115,7 +115,12 @@ public class DefaultHttpHandler implements HttpHandler {
     public void cancelRequest(final Object request) {
         if (request instanceof Call) {
             Call call = (Call)request;
-            call.cancel();
+            if (okClient.dispatcher().runningCalls().indexOf(call) < 0) {
+                 Log.e("Tangram", "CANCELING CALL");
+                call.cancel();
+            } else {
+                Log.e("Tangram", "NOT CANCELING CALL");
+            }
         }
     }
 
