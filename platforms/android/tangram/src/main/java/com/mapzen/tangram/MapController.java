@@ -491,13 +491,16 @@ public class MapController implements Renderer {
 
         checkPointer(mapPointer);
 
-        final boolean animated = (duration != 0);
-        mapRegionChangeStateManager.onRegionWillChange(animated);
+        if (duration > 0) {
+            mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.ANIMATING);
+        } else {
+            mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.JUMPING);
+        }
 
         CameraAnimationCallback callback = new CameraAnimationCallback() {
             @Override
             public void onFinish() {
-                mapRegionChangeStateManager.onRegionDidChange(animated);
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.IDLE);
                 if (cb != null) {
                     cb.onFinish();
                 }
@@ -506,7 +509,7 @@ public class MapController implements Renderer {
             @Override
             public void onCancel() {
                 // Possible camera update was cancelled in between, so should account for this map change
-                mapRegionChangeStateManager.onRegionDidChange(animated);
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.IDLE);
                 if (cb != null) {
                     cb.onCancel();
                 }
@@ -613,11 +616,18 @@ public class MapController implements Renderer {
      */
     public void flyTo(@NonNull final LngLat position, final float zoom, final int duration, final float speed) {
         checkPointer(mapPointer);
-        boolean animated = (duration != 0);
-        mapRegionChangeStateManager.onRegionWillChange(animated);
+        if (duration > 0) {
+            mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.ANIMATING);
+        } else {
+            mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.JUMPING);
+        }
         final float seconds = duration / 1000.f;
         nativeFlyTo(mapPointer, position.longitude, position.latitude, zoom, seconds, speed);
-        mapRegionChangeStateManager.onRegionDidChange(animated);
+
+        // TODO: Refactor once flyTo is updated to take callback on finish/cancel
+        if (duration <= 0) {
+            mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.IDLE);
+        }
     }
 
     /**
@@ -808,25 +818,26 @@ public class MapController implements Renderer {
         return new TouchInput.PanResponder() {
             @Override
             public boolean onPanBegin() {
-                mapRegionChangeStateManager.onRegionWillChange(true);
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.ANIMATING);
                 return true;
             }
 
             @Override
             public boolean onPan(final float startX, final float startY, final float endX, final float endY) {
-                mapRegionChangeStateManager.onRegionIsChanging();
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.ANIMATING);
                 nativeHandlePanGesture(mapPointer, startX, startY, endX, endY);
                 return true;
             }
 
             @Override
             public boolean onPanEnd() {
-                mapRegionChangeStateManager.onRegionDidChange(true);
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.IDLE);
                 return true;
             }
 
             @Override
             public boolean onFling(final float posX, final float posY, final float velocityX, final float velocityY) {
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.ANIMATING);
                 nativeHandleFlingGesture(mapPointer, posX, posY, velocityX, velocityY);
                 return true;
             }
@@ -834,7 +845,6 @@ public class MapController implements Renderer {
             @Override
             public boolean onCancelFling() {
                 cancelCameraAnimation();
-                mapRegionChangeStateManager.onRegionDidChange(true);
                 return true;
             }
         };
@@ -847,20 +857,20 @@ public class MapController implements Renderer {
         return new TouchInput.RotateResponder() {
             @Override
             public boolean onRotateBegin() {
-                mapRegionChangeStateManager.onRegionWillChange(true);
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.ANIMATING);
                 return true;
             }
 
             @Override
             public boolean onRotate(final float x, final float y, final float rotation) {
-                mapRegionChangeStateManager.onRegionIsChanging();
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.ANIMATING);
                 nativeHandleRotateGesture(mapPointer, x, y, rotation);
                 return true;
             }
 
             @Override
             public boolean onRotateEnd() {
-                mapRegionChangeStateManager.onRegionDidChange(true);
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.IDLE);
                 return true;
             }
         };
@@ -873,20 +883,20 @@ public class MapController implements Renderer {
         return new TouchInput.ScaleResponder() {
             @Override
             public boolean onScaleBegin() {
-                mapRegionChangeStateManager.onRegionWillChange(true);
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.ANIMATING);
                 return true;
             }
 
             @Override
             public boolean onScale(final float x, final float y, final float scale, final float velocity) {
-                mapRegionChangeStateManager.onRegionIsChanging();
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.ANIMATING);
                 nativeHandlePinchGesture(mapPointer, x, y, scale, velocity);
                 return true;
             }
 
             @Override
             public boolean onScaleEnd() {
-                mapRegionChangeStateManager.onRegionDidChange(true);
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.IDLE);
                 return true;
             }
         };
@@ -899,20 +909,20 @@ public class MapController implements Renderer {
         return new TouchInput.ShoveResponder() {
             @Override
             public boolean onShoveBegin() {
-                mapRegionChangeStateManager.onRegionWillChange(true);
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.ANIMATING);
                 return true;
             }
 
             @Override
             public boolean onShove(final float distance) {
-                mapRegionChangeStateManager.onRegionIsChanging();
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.ANIMATING);
                 nativeHandleShoveGesture(mapPointer, distance);
                 return true;
             }
 
             @Override
             public boolean onShoveEnd() {
-                mapRegionChangeStateManager.onRegionDidChange(true);
+                mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.IDLE);
                 return true;
             }
         };
@@ -1094,60 +1104,50 @@ public class MapController implements Renderer {
     private static class MapRegionChangeStateManager {
 
         enum MapRegionChangeState {
-            MAP_REGION_NO_CHANGE,
-            MAP_REGION_WILL_CHANGE,
-            MAP_REGION_WILL_CHANGE_ANIMATED,
-            MAP_REGION_IS_CHANGING,
-            MAP_REGION_DID_CHANGE,
-            MAP_REGION_DID_CHANGE_ANIMATED,
+            IDLE,
+            JUMPING,
+            ANIMATING,
         }
 
-        MapRegionChangeState mapRegionChangeState = MapRegionChangeState.MAP_REGION_NO_CHANGE;
         WeakReference<MapChangeListener> mapChangeListenerWeakReference;
 
         MapRegionChangeStateManager(@Nullable MapChangeListener listener) {
             mapChangeListenerWeakReference = new WeakReference<>(listener);
         }
 
-        private void onRegionWillChange(boolean animated) {
-            MapChangeListener mapChangeListener = mapChangeListenerWeakReference.get();
-            if (mapChangeListener != null) {
-                if (mapRegionChangeState != MapRegionChangeState.MAP_REGION_WILL_CHANGE &&
-                        mapRegionChangeState != MapRegionChangeState.MAP_REGION_WILL_CHANGE_ANIMATED) {
-                    mapChangeListener.onRegionWillChange(animated);
-                    if (animated) {
-                        mapRegionChangeState = MapRegionChangeState.MAP_REGION_WILL_CHANGE_ANIMATED;
-                    } else {
-                        mapRegionChangeState = MapRegionChangeState.MAP_REGION_WILL_CHANGE;
-                    }
-                }
-            }
-        }
+        MapRegionChangeState currentState = MapRegionChangeState.IDLE;
 
-        private void onRegionDidChange(boolean animated) {
-            MapChangeListener mapChangeListener = mapChangeListenerWeakReference.get();
-            if (mapChangeListener != null) {
-                if (mapRegionChangeState == MapRegionChangeState.MAP_REGION_WILL_CHANGE ||
-                        mapRegionChangeState == MapRegionChangeState.MAP_REGION_IS_CHANGING) {
-                    mapChangeListener.onRegionDidChange(animated);
-                    if (animated) {
-                        mapRegionChangeState = MapRegionChangeState.MAP_REGION_DID_CHANGE_ANIMATED;
-                    } else {
-                        mapRegionChangeState = MapRegionChangeState.MAP_REGION_DID_CHANGE;
-                    }
-                }
-            }
-        }
+        void setMapRegionState(MapRegionChangeState state) {
 
-        private void onRegionIsChanging() {
             MapChangeListener mapChangeListener = mapChangeListenerWeakReference.get();
             if (mapChangeListener != null) {
-                if (mapRegionChangeState == MapRegionChangeState.MAP_REGION_WILL_CHANGE_ANIMATED ||
-                        mapRegionChangeState == MapRegionChangeState.MAP_REGION_IS_CHANGING) {
-                    mapChangeListener.onRegionIsChanging();
-                    mapRegionChangeState = MapRegionChangeState.MAP_REGION_IS_CHANGING;
+                switch (currentState) {
+                    case IDLE:
+                        if (state == MapRegionChangeState.JUMPING) {
+                            mapChangeListener.onRegionWillChange(false);
+                        } else if (state == MapRegionChangeState.ANIMATING){
+                            mapChangeListener.onRegionWillChange(true);
+                        }
+                        break;
+                    case JUMPING:
+                        if (state == MapRegionChangeState.IDLE) {
+                            mapChangeListener.onRegionDidChange(false);
+                        } else if (state == MapRegionChangeState.ANIMATING) { // e.g. panning to fling
+                            mapChangeListener.onRegionIsChanging();
+                        }
+                        break;
+                    case ANIMATING:
+                        if (state == MapRegionChangeState.IDLE) {
+                            mapChangeListener.onRegionDidChange(true);
+                        } else if (state == MapRegionChangeState.ANIMATING) {
+                            mapChangeListener.onRegionIsChanging();
+                        } else { // ?? ANIMATING -> JUMPING?? Possible?
+                            mapChangeListener.onRegionWillChange(false);
+                        }
+                        break;
                 }
             }
+            currentState = state;
         }
     }
 
@@ -1429,7 +1429,7 @@ public class MapController implements Renderer {
         }
 
         if (isCameraEasing) {
-            mapRegionChangeStateManager.onRegionIsChanging();
+            mapRegionChangeStateManager.setMapRegionState(MapRegionChangeStateManager.MapRegionChangeState.ANIMATING);
         }
 
         if (viewComplete) {
