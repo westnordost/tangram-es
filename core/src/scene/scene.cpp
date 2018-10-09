@@ -11,7 +11,7 @@
 #include "style/material.h"
 #include "style/style.h"
 #include "text/fontContext.h"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 #include "util/util.h"
 #include "util/zipArchive.h"
 

@@ -4,7 +4,7 @@
 #include "scene/scene.h"
 #include "tile/tile.h"
 #include "tile/tileBuilder.h"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 
 namespace Tangram {
 

@@ -2,7 +2,7 @@
 
 #include "labels/label.h"
 #include "labels/screenTransform.h"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 #include "util/types.h"
 
 #include "isect2d.h"

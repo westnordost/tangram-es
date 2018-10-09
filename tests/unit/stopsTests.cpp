@@ -2,7 +2,7 @@
 
 #include "scene/stops.h"
 #include "yaml-cpp/yaml.h"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 
 using namespace Tangram;
 

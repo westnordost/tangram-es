@@ -4,7 +4,7 @@
 #include "log.h"
 #include "scene/styleParam.h"
 #include "scene/spriteAtlas.h"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 
 #include <algorithm>
 #include "csscolorparser.hpp"
@@ -39,7 +39,7 @@ auto Stops::Colors(const YAML::Node& _node) -> Stops {
 
 double widthMeterToPixel(float _zoom, double _tileSize, double _width) {
     // pixel per meter at z == 0
-    double meterRes = _tileSize / (2.0 * MapProjection::HALF_CIRCUMFERENCE);
+    double meterRes = _tileSize / (2.0 * MapProjection::EARTH_HALF_CIRCUMFERENCE_METERS);
     // pixel per meter at zoom
     meterRes *= exp2(_zoom);
 

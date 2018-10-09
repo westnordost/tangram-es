@@ -3,7 +3,7 @@
 #include "data/propertyItem.h"
 #include "tile/tileTask.h"
 #include "util/geom.h"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 #include "log.h"
 
 namespace Tangram {
@@ -261,12 +261,12 @@ std::shared_ptr<TileData> TopoJson::parseTile(const TileTask& _task, const MapPr
     }
 
     // Transform JSON data into a TileData using TopoJson functions
-    BoundingBox tileBounds(_projection.TileBounds(task.tileId()));
+    BoundingBox tileBounds(_projection.tileBoundsInProjectedMeters(task.tileId()));
     glm::dvec2 tileOrigin = {tileBounds.min.x, tileBounds.max.y*-1.0};
     double tileInverseScale = 1.0 / tileBounds.width();
 
     const auto projFn = [&](glm::dvec2 _lonLat){
-        glm::dvec2 tmp = _projection.LonLatToMeters(_lonLat);
+        glm::dvec2 tmp = _projection.lngLatToProjectedMeters(_lonLat);
         return Point {
             (tmp.x - tileOrigin.x) * tileInverseScale,
             (tmp.y - tileOrigin.y) * tileInverseScale,

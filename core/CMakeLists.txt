@@ -84,7 +84,6 @@ add_library(tangram-core
   src/util/inputHandler.cpp
   src/util/jobQueue.cpp
   src/util/json.cpp
-  src/util/mapProjection.cpp
   src/util/rasterize.cpp
   src/util/url.cpp
   src/util/yamlPath.cpp
@@ -92,6 +91,8 @@ add_library(tangram-core
   src/util/zipArchive.cpp
   src/util/zlibHelper.cpp
   src/view/flyTo.cpp
+  src/view/mapProjection.cpp
+  src/view/sphericalMercator.cpp
   src/view/view.cpp
   src/view/viewConstraint.cpp
 )

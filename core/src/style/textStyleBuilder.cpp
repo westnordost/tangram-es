@@ -12,7 +12,7 @@
 #include "scene/drawRule.h"
 #include "tile/tile.h"
 #include "util/geom.h"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 #include "util/lineSampler.h"
 #include "view/view.h"
 
@@ -47,7 +47,7 @@ void TextStyleBuilder::setup(const Tile& _tile){
 }
 
 void TextStyleBuilder::setup(const Marker& marker, int zoom) {
-    float metersPerTile = 2.f * MapProjection::HALF_CIRCUMFERENCE * exp2(-zoom);
+    float metersPerTile = 2.f * MapProjection::EARTH_HALF_CIRCUMFERENCE_METERS * exp2(-zoom);
 
     // In general, a Marker won't cover the same area as a tile, so the effective
     // "tile size" for building a Marker is the size of a tile in pixels multiplied

@@ -10,7 +10,7 @@
 #include "selection/featureSelection.h"
 #include "style/style.h"
 #include "tile/tile.h"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 #include "view/view.h"
 
 namespace Tangram {

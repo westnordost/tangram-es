@@ -16,7 +16,7 @@ Tile::Tile(TileID _id, const MapProjection& _projection, const TileSource* _sour
     m_sourceId(_source ? _source->id() : 0),
     m_sourceGeneration(_source ? _source->generation() : 0) {
 
-    BoundingBox bounds(_projection.TileBounds(_id));
+    BoundingBox bounds(_projection.tileBoundsInProjectedMeters(_id));
 
     m_scale = bounds.width();
     m_inverseScale = 1.0/m_scale;
@@ -31,7 +31,7 @@ glm::dvec2 Tile::coordToLngLat(const glm::vec2& _tileCoord) const {
     double scale = 1.0 / m_inverseScale;
 
     glm::dvec2 meters = glm::dvec2(_tileCoord) * scale + m_tileOrigin;
-    glm::dvec2 degrees = m_projection->MetersToLonLat(meters);
+    glm::dvec2 degrees = m_projection->projectedMetersToLngLat(meters);
 
     return {degrees.x, degrees.y};
 }

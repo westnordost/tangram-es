@@ -12,7 +12,7 @@
 #include "tile/tileBuilder.h"
 #include "tile/tileTask.h"
 #include "text/fontContext.h"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 
 #include <fstream>
 #include <iostream>

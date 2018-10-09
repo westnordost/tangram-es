@@ -1,6 +1,6 @@
 #include "view/flyTo.h"
 
-#include "util/mapProjection.h"
+#include "mapProjection.h"
 #include "view/view.h"
 #include <cmath>
 #include "log.h"

@@ -637,8 +637,8 @@ void Map::setCameraPositionEased(const CameraPosition& _camera, float _duration,
         lonEnd += 360.0;
     }
 
-    e.start.pos = impl->view.getMapProjection().LonLatToMeters({ lonStart, latStart});
-    e.end.pos = impl->view.getMapProjection().LonLatToMeters({ lonEnd, latEnd});
+    e.start.pos = impl->view.getMapProjection().lngLatToProjectedMeters({lonStart, latStart});
+    e.end.pos = impl->view.getMapProjection().lngLatToProjectedMeters({lonEnd, latEnd});
 
     e.start.zoom = getZoom();
     e.end.zoom = _camera.zoom;
@@ -712,7 +712,7 @@ void Map::updateCameraPosition(const CameraUpdate& _update, float _duration, Eas
 void Map::setPosition(double _lon, double _lat) {
     cancelCameraAnimation();
 
-    glm::dvec2 meters = impl->view.getMapProjection().LonLatToMeters({ _lon, _lat});
+    glm::dvec2 meters = impl->view.getMapProjection().lngLatToProjectedMeters({_lon, _lat});
     impl->view.setPosition(meters.x, meters.y);
     impl->inputHandler.cancelFling();
     impl->platform->requestRender();
@@ -779,8 +779,8 @@ CameraPosition Map::getEnclosingCameraPosition(LngLat _a, LngLat _b, EdgePadding
     const MapProjection& projection = view.getMapProjection();
 
     // Convert the bounding coordinates into Mercator meters.
-    glm::dvec2 aMeters = projection.LonLatToMeters(glm::dvec2(_a.longitude, _a.latitude));
-    glm::dvec2 bMeters = projection.LonLatToMeters(glm::dvec2(_b.longitude, _b.latitude));
+    glm::dvec2 aMeters = projection.lngLatToProjectedMeters(glm::dvec2(_a.longitude, _a.latitude));
+    glm::dvec2 bMeters = projection.lngLatToProjectedMeters(glm::dvec2(_b.longitude, _b.latitude));
     glm::dvec2 dMeters = glm::abs(aMeters - bMeters);
 
     // Calculate the inner size of the view that the bounds must fit within.
@@ -792,13 +792,13 @@ CameraPosition Map::getEnclosingCameraPosition(LngLat _a, LngLat _b, EdgePadding
 
     // Take the value from the larger dimension to calculate the final zoom.
     double maxMetersPerPixel = std::max(metersPerPixel.x, metersPerPixel.y);
-    double zoom = -std::log2(maxMetersPerPixel * projection.TileSize() / MapProjection::CIRCUMFERENCE);
+    double zoom = -std::log2(maxMetersPerPixel * projection.TileSize() / MapProjection::EARTH_CIRCUMFERENCE_METERS);
 
     // Adjust the center of the final visible region using the padding converted to Mercator meters.
     glm::dvec2 paddingMeters = glm::dvec2(_pad.right - _pad.left, _pad.top - _pad.bottom) * maxMetersPerPixel;
     glm::dvec2 centerMeters = 0.5 * (aMeters + bMeters + paddingMeters);
 
-    glm::dvec2 centerLngLat = projection.MetersToLonLat(centerMeters);
+    glm::dvec2 centerLngLat = projection.projectedMetersToLngLat(centerMeters);
 
     CameraPosition camera;
     camera.zoom = static_cast<float>(zoom);
@@ -828,8 +828,8 @@ void Map::flyTo(const CameraPosition& _camera, float _duration, float _speed) {
     }
 
     const MapProjection& projection = impl->view.getMapProjection();
-    glm::dvec2 a = projection.LonLatToMeters(glm::dvec2(lngStart, latStart));
-    glm::dvec2 b = projection.LonLatToMeters(glm::dvec2(lngEnd, latEnd));
+    glm::dvec2 a = projection.lngLatToProjectedMeters(glm::dvec2(lngStart, latStart));
+    glm::dvec2 b = projection.lngLatToProjectedMeters(glm::dvec2(lngEnd, latEnd));
 
     double distance = 0.0;
     auto fn = getFlyToFunction(impl->view,
@@ -864,7 +864,7 @@ bool Map::screenPositionToLngLat(double _x, double _y, double* _lng, double* _la
     double intersection = impl->view.screenToGroundPlane(_x, _y);
     glm::dvec3 eye = impl->view.getPosition();
     glm::dvec2 meters(_x + eye.x, _y + eye.y);
-    glm::dvec2 lngLat = impl->view.getMapProjection().MetersToLonLat(meters);
+    glm::dvec2 lngLat = impl->view.getMapProjection().projectedMetersToLngLat(meters);
     *_lng = LngLat::wrapLongitude(lngLat.x);
     *_lat = lngLat.y;
 

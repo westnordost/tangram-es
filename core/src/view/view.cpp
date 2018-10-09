@@ -41,7 +41,7 @@ void View::setMapProjection(ProjectionType _projType) {
             break;
     }
 
-    auto bounds = m_projection->MapBounds();
+    auto bounds = m_projection->ProjectedBounds();
     m_constraint.setLimitsY(bounds.min.y, bounds.max.y);
 
     m_dirtyMatrices = true;
@@ -182,14 +182,14 @@ float View::getMaxPitch() const {
 
 void View::setPosition(double _x, double _y) {
     // Wrap horizontal position around the 180th meridian, which corresponds to +/- HALF_CIRCUMFERENCE meters.
-    m_pos.x = _x - std::round(_x / MapProjection::CIRCUMFERENCE) * MapProjection::CIRCUMFERENCE;
+    m_pos.x = _x - std::round(_x / MapProjection::EARTH_CIRCUMFERENCE_METERS) * MapProjection::EARTH_CIRCUMFERENCE_METERS;
     // Clamp vertical position to the span of the map, which is +/- HALF_CIRCUMFERENCE meters.
-    m_pos.y = glm::clamp(_y, -MapProjection::HALF_CIRCUMFERENCE, MapProjection::HALF_CIRCUMFERENCE);
+    m_pos.y = glm::clamp(_y, -MapProjection::EARTH_HALF_CIRCUMFERENCE_METERS, MapProjection::EARTH_HALF_CIRCUMFERENCE_METERS);
     m_dirtyTiles = true;
 }
 
 void View::setCenterCoordinates(Tangram::LngLat center) {
-    auto meters = m_projection->LonLatToMeters({center.longitude, center.latitude});
+    auto meters = m_projection->lngLatToProjectedMeters({center.longitude, center.latitude});
     setPosition(meters.x, meters.y);
 }
 
@@ -241,7 +241,7 @@ void View::pitch(float _dpitch) {
 }
 
 LngLat View::getCenterCoordinates() const {
-    auto center = m_projection->MetersToLonLat({m_pos.x, m_pos.y});
+    auto center = m_projection->projectedMetersToLngLat({m_pos.x, m_pos.y});
     return LngLat(center.x, center.y);
 }
 
@@ -350,7 +350,7 @@ double View::screenToGroundPlaneInternal(double& _screenX, double& _screenY) con
     // Determine the maximum distance from the view position at which tiles can be drawn; If the projected point
     // is farther than this maximum or if the point is above the horizon (t < 0) then we set the distance of the
     // point to always be this maximum distance.
-    double maxTileDistance = invLodFunc(MAX_LOD + 1) * 2.0 * MapProjection::HALF_CIRCUMFERENCE * pow(2, -m_zoom);
+    double maxTileDistance = invLodFunc(MAX_LOD + 1) * 2.0 * MapProjection::EARTH_HALF_CIRCUMFERENCE_METERS * pow(2, -m_zoom);
     double rayDistanceXY = sqrt(ray_world.x * ray_world.x + ray_world.y * ray_world.y);
     if (rayDistanceXY > maxTileDistance || t < 0) {
         ray_world *= maxTileDistance / rayDistanceXY;
@@ -364,7 +364,7 @@ double View::screenToGroundPlaneInternal(double& _screenX, double& _screenY) con
 
 float View::pixelsPerMeter() const {
 
-    double metersPerTile = 2.0 * MapProjection::HALF_CIRCUMFERENCE * exp2(-m_zoom);
+    double metersPerTile = 2.0 * MapProjection::EARTH_HALF_CIRCUMFERENCE_METERS * exp2(-m_zoom);
     return s_pixelsPerTile / metersPerTile;
 }
 
@@ -379,7 +379,7 @@ float View::fieldOfViewToFocalLength(float radians) {
 void View::updateMatrices() {
 
     // find dimensions of tiles in world space at new zoom level
-    float worldTileSize = 2 * MapProjection::HALF_CIRCUMFERENCE * pow(2, -m_zoom);
+    float worldTileSize = 2 * MapProjection::EARTH_HALF_CIRCUMFERENCE_METERS * pow(2, -m_zoom);
 
     // viewport height in world space is such that each tile is [m_pixelsPerTile] px square in screen space
     float screenTileSize = s_pixelsPerTile * m_pixelScale;
@@ -458,7 +458,7 @@ void View::updateMatrices() {
 }
 
 glm::vec2 View::lonLatToScreenPosition(double lon, double lat, bool& clipped) const {
-    glm::dvec2 absoluteMeters = m_projection->LonLatToMeters({lon, lat});
+    glm::dvec2 absoluteMeters = m_projection->lngLatToProjectedMeters({lon, lat});
     glm::dvec2 relativeMeters = getRelativeMeters(absoluteMeters);
     glm::dvec4 worldPosition(relativeMeters, 0.0, 1.0);
 
@@ -471,10 +471,10 @@ glm::dvec2 View::getRelativeMeters(glm::dvec2 projectedMeters) const {
     double dx = projectedMeters.x - m_pos.x;
     double dy = projectedMeters.y - m_pos.y;
     // If the position is closer when wrapped around the 180th meridian, then wrap it.
-    if (dx > MapProjection::HALF_CIRCUMFERENCE) {
-        dx -= MapProjection::CIRCUMFERENCE;
-    } else if (dx < -MapProjection::HALF_CIRCUMFERENCE) {
-        dx += MapProjection::CIRCUMFERENCE;
+    if (dx > MapProjection::EARTH_HALF_CIRCUMFERENCE_METERS) {
+        dx -= MapProjection::EARTH_CIRCUMFERENCE_METERS;
+    } else if (dx < -MapProjection::EARTH_HALF_CIRCUMFERENCE_METERS) {
+        dx += MapProjection::EARTH_CIRCUMFERENCE_METERS;
     }
     return {dx, dy};
 }
@@ -501,8 +501,8 @@ void View::getVisibleTiles(const std::function<void(TileID)>& _tileCb) const {
     }
 
     // Transformation from world space to tile space
-    double hc = MapProjection::HALF_CIRCUMFERENCE;
-    double invTileSize = double(maxTileIndex) / (hc * 2);
+    double hc = MapProjection::EARTH_HALF_CIRCUMFERENCE_METERS;
+    double invTileSize = double(maxTileIndex) / MapProjection::EARTH_CIRCUMFERENCE_METERS;
     glm::dvec2 tileSpaceOrigin(-hc, hc);
     glm::dvec2 tileSpaceAxes(invTileSize, -invTileSize);
 

@@ -4,7 +4,7 @@
 #include <iomanip>
 
 #include "glm/glm.hpp"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 
 #include <stdio.h>
 

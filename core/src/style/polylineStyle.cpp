@@ -16,7 +16,7 @@
 #include "util/dashArray.h"
 #include "util/extrude.h"
 #include "util/floatFormatter.h"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 
 #include "glm/vec3.hpp"
 #include "glm/gtc/type_precision.hpp"
@@ -235,7 +235,7 @@ void PolylineStyleBuilder<V>::setup(const Marker& marker, int zoom) {
     m_zoom = zoom;
     m_overzoom2 = 1.f;
     m_tileUnitsPerMeter = 1.f / marker.extent();
-    float metersPerTile = 2.f * MapProjection::HALF_CIRCUMFERENCE * exp2(-zoom);
+    float metersPerTile = 2.f * MapProjection::EARTH_HALF_CIRCUMFERENCE_METERS * exp2(-zoom);
 
     // In general, a Marker won't cover the same area as a tile, so the effective
     // "tile size" for building a Marker is the size of a tile in pixels multiplied

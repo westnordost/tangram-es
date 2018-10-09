@@ -4,7 +4,7 @@
 #include "log.h"
 #include "tile/tileTask.h"
 #include "util/geom.h"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 
 #include "glm/glm.hpp"
 
@@ -174,12 +174,12 @@ std::shared_ptr<TileData> GeoJson::parseTile(const TileTask& _task, const MapPro
         return tileData;
     }
 
-    BoundingBox tileBounds(_projection.TileBounds(task.tileId()));
+    BoundingBox tileBounds(_projection.tileBoundsInProjectedMeters(task.tileId()));
     glm::dvec2 tileOrigin = {tileBounds.min.x, tileBounds.max.y*-1.0};
     double tileInverseScale = 1.0 / tileBounds.width();
 
     const auto projFn = [&](glm::dvec2 _lonLat){
-        glm::dvec2 tmp = _projection.LonLatToMeters(_lonLat);
+        glm::dvec2 tmp = _projection.lngLatToProjectedMeters(_lonLat);
         return Point {
             (tmp.x - tileOrigin.x) * tileInverseScale,
             (tmp.y - tileOrigin.y) * tileInverseScale,

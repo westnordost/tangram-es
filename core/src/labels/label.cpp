@@ -4,7 +4,7 @@
 #include "platform.h"
 #include "tile/tile.h"
 #include "util/geom.h"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 #include "view/view.h"
 
 namespace Tangram {

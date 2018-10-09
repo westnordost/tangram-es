@@ -5,7 +5,7 @@
 #include "platform.h"
 #include "tile/tile.h"
 #include "tile/tileCache.h"
-#include "util/mapProjection.h"
+#include "view/mapProjection.h"
 #include "view/view.h"
 
 #include "glm/gtx/norm.hpp"

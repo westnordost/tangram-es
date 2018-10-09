@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tile/tileID.h"
-#include "util/mapProjection.h"
+#include "mapProjection.h"
 #include "util/types.h"
 #include "view/viewConstraint.h"
 

@@ -71,7 +71,7 @@ void Marker::setMesh(uint32_t styleId, uint32_t zoom, std::unique_ptr<StyledMesh
 
     float scale;
     if (m_feature && m_feature->geometryType == GeometryType::points) {
-        scale = (MapProjection::HALF_CIRCUMFERENCE * 2) / (1 << zoom);
+        scale = (MapProjection::EARTH_HALF_CIRCUMFERENCE_METERS * 2) / (1 << zoom);
     } else {
         scale = modelScale();
     }
