@@ -246,7 +246,7 @@ public class MainActivity extends AppCompatActivity implements MapController.Sce
         map.pickLabel(x, y);
         map.pickMarker(x, y);
 
-        map.updateCameraPosition(CameraUpdateFactory.setPosition(tappedPoint), 1000, new MapController.CameraAnimationCallback() {
+        map.updateCameraPosition(CameraUpdateFactory.setPosition(tappedPoint), 0, new MapController.CameraAnimationCallback() {
             @Override
             public void onFinish() {
                 Log.d("Tangram","finished!");
@@ -271,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements MapController.Sce
         camera.latitude = .5 * (tapped.latitude + camera.latitude);
         camera.zoom += 1;
         map.updateCameraPosition(CameraUpdateFactory.newCameraPosition(camera),
-                    500, MapController.EaseType.CUBIC);
+                    5000, MapController.EaseType.CUBIC);
         return true;
     }
 
@@ -282,6 +282,7 @@ public class MainActivity extends AppCompatActivity implements MapController.Sce
         markers.clear();
         showTileInfo = !showTileInfo;
         map.setDebugFlag(MapController.DebugFlag.TILE_INFOS, showTileInfo);
+        map.flyTo(new LngLat(76.9531794,28.6468935), 16, 1000, 0.05f);
     }
 
     @Override
